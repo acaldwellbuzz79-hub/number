@@ -5,25 +5,63 @@ import type { DestinationData } from "~/types";
  * Prices are per-person all-in estimates (taxes/fees included).
  * In production this would come from real APIs (Amadeus, Skyscanner, etc.).
  *
- * Booking links use Travelpayouts affiliate URLs:
- * - Flights: Aviasales search with marker=direct_search
- * - Hotels: Hotellook search with marker=direct_search
- * Dates: August 3–8, 2026 (030826 – 080826 DDMMYY)
+ * Affiliate links:
+ * - Flights: Kayak search with affiliate tracking (ai= param)
+ * - Hotels: Booking.com search with affiliate AID (aid= param)
+ * Dates: August 3–8, 2026
  *
  * Hotel tiers:
  * - budget: hostels, motels, budget chains
  * - mid: 3-star hotels, known budget-friendly chains (Holiday Inn, Best Western, etc.)
  * - premium: 4-star but still affordable (Hyatt Place, Hilton Garden Inn, etc.)
+ *
+ * --- Affiliate ID configuration ---
+ * Set VITE_BOOKING_AID and VITE_KAYAK_AFFILIATE in your .env file.
+ * When unset links use demo IDs that still work (no commission tracking).
  */
 
-/** Build an Aviasales flight search URL */
-function flightLink(origin: string, dest: string, depDate: string, retDate: string): string {
-  return `https://aviasales.com/search/${origin}${depDate}${dest}${retDate}1?marker=direct_search`;
+/** Read Booking.com AID from env, or fall back to a demo/test value */
+function bookingAid(): string {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_BOOKING_AID) {
+    return import.meta.env.VITE_BOOKING_AID as string;
+  }
+  // SSR fallback
+  if (typeof process !== "undefined" && process.env?.BOOKING_AID) {
+    return process.env.BOOKING_AID;
+  }
+  return "vacayscout_demo";
 }
 
-/** Build a Hotellook hotel search URL */
+/** Read Kayak affiliate ID from env, or fall back to a demo/test value */
+function kayakAffiliate(): string {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_KAYAK_AFFILIATE) {
+    return import.meta.env.VITE_KAYAK_AFFILIATE as string;
+  }
+  if (typeof process !== "undefined" && process.env?.KAYAK_AFFILIATE) {
+    return process.env.KAYAK_AFFILIATE;
+  }
+  return "vacayscout_demo";
+}
+
+/** Build a Kayak flight search URL */
+function flightLink(origin: string, dest: string, depDate: string, retDate: string): string {
+  // Convert DDMMYY date format to YYYY-MM-DD for Kayak
+  const fmtDate = (ddmmyy: string): string => {
+    const day = ddmmyy.substring(0, 2);
+    const month = ddmmyy.substring(2, 4);
+    const year = `20${ddmmyy.substring(4, 6)}`;
+    return `${year}-${month}-${day}`;
+  };
+  const dep = fmtDate(depDate);
+  const ret = fmtDate(retDate);
+  const aff = kayakAffiliate();
+  return `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}?ai=${aff}`;
+}
+
+/** Build a Booking.com hotel search URL */
 function hotelLink(destinationName: string, checkIn: string, checkOut: string): string {
-  return `https://hotellook.com/hotels?q=${encodeURIComponent(destinationName)}&checkIn=${checkIn}&checkOut=${checkOut}&marker=direct_search`;
+  const aid = bookingAid();
+  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(destinationName)}&checkin=${checkIn}&checkout=${checkOut}&aid=${aid}&lang=en-us`;
 }
 
 // Shared date params
