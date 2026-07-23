@@ -6,7 +6,16 @@ import { ResultsStep } from "~/components/ResultsStep";
 import { getDestinationData } from "~/data/mockData";
 import { searchFlights, searchHotels } from "~/data/amadeusApi";
 import { logKpiEvent } from "~/data/kpiStore";
-import type { TripParams, TripResult, Flight, Hotel, Activity } from "~/types";
+import type {
+  TripParams,
+  TripResult,
+  Flight,
+  Hotel,
+  Activity,
+  LegInput,
+  TripLeg,
+  MultiLegTripResult,
+} from "~/types";
 
 type Step = "budget" | "details" | "results";
 
@@ -47,7 +56,6 @@ function computeTrip(
   // Apply off-peak discount to flight and hotel prices
   const discountMultiplier = offPeak ? 1 - savingsPercent / 100 : 1;
 
-  // Discounted copies for computation
   const adjustedFlights: Flight[] = flights.map((f) => ({
     ...f,
     price: Math.round(f.price * discountMultiplier),
@@ -57,7 +65,6 @@ function computeTrip(
     pricePerNight: Math.round(h.pricePerNight * discountMultiplier),
   }));
 
-  // Sort flights by price ascending (skip if driving)
   const sortedFlights = driving
     ? []
     : [...adjustedFlights].sort((a, b) => a.price - b.price);
@@ -87,9 +94,11 @@ function computeTrip(
 
   const flightTotal = driving ? 0 : cheapestFlight!.price * travelers;
 
-  // Pick up to 3 hotels at different tiers, all within budget (flight + hotel)
-  // Process tiers in order: budget, mid, premium
-  const tierOrder: Array<"budget" | "mid" | "premium"> = ["budget", "mid", "premium"];
+  const tierOrder: Array<"budget" | "mid" | "premium"> = [
+    "budget",
+    "mid",
+    "premium",
+  ];
   const candidateHotels: Hotel[] = [];
 
   for (const tier of tierOrder) {
@@ -101,14 +110,12 @@ function computeTrip(
       const hotelTotal = hotel.pricePerNight * nights;
       if (flightTotal + hotelTotal <= budget) {
         candidateHotels.push(hotel);
-        break; // Take the cheapest in this tier that fits
+        break;
       }
     }
   }
 
-  // If no hotel at all fits the budget, return not feasible
   if (candidateHotels.length === 0) {
-    // Find the absolute cheapest hotel for display in the not-feasible state
     const absoluteCheapest = [...adjustedHotels].sort(
       (a, b) => a.pricePerNight - b.pricePerNight,
     )[0];
@@ -131,16 +138,11 @@ function computeTrip(
     };
   }
 
-  // Use the cheapest candidate hotel for base total cost
   const primaryHotel = candidateHotels[0];
-
-  // Base cost: cheapest flight * travelers + primary hotel * nights
   let totalCost = flightTotal + primaryHotel.pricePerNight * nights;
 
-  // Always include free activities
   const selectedActivities: Activity[] = [...freeActivities];
 
-  // Add paid activities (per person) if budget allows
   for (const act of paidActivities) {
     const actCost = act.price * travelers;
     if (totalCost + actCost <= budget) {
@@ -149,18 +151,18 @@ function computeTrip(
     }
   }
 
-  // Compute peak-equivalent cost for comparison (only when offPeak)
   let peakTotalCost: number | undefined;
   if (offPeak && savingsPercent > 0) {
     const origFlights = driving
       ? []
       : [...flights].sort((a, b) => a.price - b.price);
-    const origHotels = [...hotels].sort((a, b) => a.pricePerNight - b.pricePerNight);
+    const origHotels = [...hotels].sort(
+      (a, b) => a.pricePerNight - b.pricePerNight,
+    );
     const peakFlightCost = driving ? 0 : (origFlights[0]?.price ?? 0);
     const peakHotelCost = origHotels[0]?.pricePerNight ?? 0;
     peakTotalCost =
       peakFlightCost * travelers + peakHotelCost * nights;
-    // Add same paid activities at peak prices
     for (const act of paidActivities) {
       if (selectedActivities.includes(act)) {
         peakTotalCost += act.price * travelers;
@@ -186,18 +188,174 @@ function computeTrip(
   };
 }
 
+/**
+ * Compute a single leg using the computeTrip engine but returning a TripLeg.
+ */
+function computeSingleLeg(
+  departure: string,
+  arrival: string,
+  departureDate: string,
+  returnDate: string,
+  flights: Flight[],
+  hotels: Hotel[],
+  activities: Activity[],
+  travelers: number,
+  budget: number,
+  offPeak: boolean,
+  savingsPercent: number,
+  driving: boolean,
+  flexibleDates: boolean,
+  flexibleDatesMonth?: string,
+): TripLeg {
+  const nights = calcNights(departureDate, returnDate);
+  const tripResult = computeTrip(
+    flights,
+    hotels,
+    activities,
+    travelers,
+    nights,
+    budget,
+    offPeak,
+    savingsPercent,
+    driving,
+  );
+
+  return {
+    departure,
+    arrival,
+    departureDate,
+    returnDate,
+    nights,
+    flights: tripResult.flights,
+    hotel: tripResult.hotel,
+    hotels: tripResult.hotels,
+    activities: tripResult.activities,
+    totalCost: tripResult.totalCost,
+    offPeak,
+    flexibleDates,
+    flexibleDatesMonth,
+  };
+}
+
+/**
+ * Compute a multi-leg trip by distributing the total budget proportionally
+ * across legs based on nights at each destination. Each leg is optimized
+ * independently within its share of the budget.
+ */
+function computeMultiLegTrip(
+  mainDeparture: string,
+  mainArrival: string,
+  mainDepartureDate: string,
+  mainReturnDate: string,
+  extraLegs: LegInput[],
+  travelers: number,
+  totalBudget: number,
+  offPeak: boolean,
+  flexibleDates: boolean,
+  driving: boolean,
+): MultiLegTripResult {
+  // Build the full list of legs: main leg + extra legs
+  const allLegInputs: Array<{
+    departure: string;
+    arrival: string;
+    departureDate: string;
+    returnDate: string;
+  }> = [
+    {
+      departure: mainDeparture,
+      arrival: mainArrival,
+      departureDate: mainDepartureDate,
+      returnDate: mainReturnDate,
+    },
+  ];
+
+  // Each extra leg's departure is the arrival of the previous leg
+  let prevArrival = mainArrival;
+  for (const extra of extraLegs) {
+    allLegInputs.push({
+      departure: prevArrival,
+      arrival: extra.arrival,
+      departureDate: extra.departureDate,
+      returnDate: extra.returnDate,
+    });
+    prevArrival = extra.arrival;
+  }
+
+  // Collect data for all destinations
+  const legsData = allLegInputs.map((input) => {
+    const data = getDestinationData(input.arrival);
+    return {
+      ...input,
+      data,
+      savingsPercent: offPeak ? (data?.seasonality?.savingsPercent ?? 0) : 0,
+      nights: calcNights(input.departureDate, input.returnDate),
+    };
+  });
+
+  // Distribute budget proportionally by nights
+  const totalNights = legsData.reduce((sum, l) => sum + l.nights, 0);
+
+  // First pass: compute each leg with its proportional budget
+  const legs = legsData.map((legData) => {
+    const legBudget =
+      totalNights > 0
+        ? Math.round((legData.nights / totalNights) * totalBudget)
+        : totalBudget;
+
+    return computeSingleLeg(
+      legData.departure,
+      legData.arrival,
+      legData.departureDate,
+      legData.returnDate,
+      legData.data?.flights ?? [],
+      legData.data?.hotels ?? [],
+      legData.data?.activities ?? [],
+      travelers,
+      legBudget,
+      offPeak,
+      legData.savingsPercent,
+      driving,
+      flexibleDates,
+    );
+  });
+
+  // Check feasibility: any leg that's infeasible makes the whole trip infeasible
+  // We detect infeasibility when totalCost is Infinity or > budget for that leg
+  const allFeasible = legs.every((leg) => leg.totalCost !== Infinity);
+  const totalCost = legs.reduce((sum, leg) => sum + (leg.totalCost === Infinity ? 0 : leg.totalCost), 0);
+  const budgetGap = Math.max(0, totalBudget - totalCost);
+
+  return {
+    legs,
+    totalCost: allFeasible ? totalCost : totalBudget + 500,
+    budgetGap: allFeasible ? budgetGap : 0,
+    isFeasible: allFeasible && totalCost <= totalBudget,
+    travelers,
+    budget: totalBudget,
+    offPeak,
+    flexibleDates,
+  };
+}
+
 function Home() {
   const [step, setStep] = useState<Step>("budget");
   const [budget, setBudget] = useState(0);
   const [params, setParams] = useState<TripParams | null>(null);
   const [result, setResult] = useState<TripResult | null>(null);
+  const [multiLegResult, setMultiLegResult] =
+    useState<MultiLegTripResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+
+  // Detect if this is a multi-leg trip
+  const [isMultiLeg, setIsMultiLeg] = useState(false);
 
   const handleBudgetNext = useCallback((b: number) => {
     setBudget(b);
     setStep("details");
-    setStatusMessage(`Budget set to $${b.toLocaleString("en-US")}. Now choose your trip details.`);
+    setStatusMessage(
+      `Budget set to $${b.toLocaleString("en-US")}. Now choose your trip details.`,
+    );
   }, []);
 
   const handleFind = useCallback(
@@ -210,21 +368,20 @@ function Home() {
       offPeak: boolean;
       flexibleDates: boolean;
       driving: boolean;
+      extraLegs?: LegInput[];
     }) => {
-      // When flexibleDates is true, compute the cheapest off-peak travel window
+      // Handle flexible dates for the main leg
       let effectiveDepartureDate = p.departureDate;
       let effectiveReturnDate = p.returnDate;
       let effectiveOffPeak = p.offPeak;
       let flexibleDatesMonth: string | undefined;
 
       if (p.flexibleDates) {
-        // Look up seasonality for the destination
         const flexDestData = getDestinationData(p.arrival);
         const flexSeasonality = flexDestData?.seasonality;
         if (flexSeasonality) {
           const now = new Date();
           const currentMonth = now.getMonth();
-          // Find the first off-peak month starting from the current month
           for (let offset = 0; offset < 18; offset++) {
             const checkMonth = (currentMonth + offset) % 12;
             const checkYear =
@@ -239,17 +396,16 @@ function Home() {
               const depDate = new Date(effectiveDepartureDate);
               depDate.setDate(depDate.getDate() + 5);
               effectiveReturnDate = depDate.toISOString().split("T")[0];
-              flexibleDatesMonth = new Date(checkYear, checkMonth, 1).toLocaleString(
-                "en-US",
-                { month: "long" },
-              );
+              flexibleDatesMonth = new Date(
+                checkYear,
+                checkMonth,
+                1,
+              ).toLocaleString("en-US", { month: "long" });
               break;
             }
           }
-          // Flexible dates implies off-peak pricing
           effectiveOffPeak = true;
         } else {
-          // No seasonality data — default to 3 months out as a reasonable guess
           const now = new Date();
           const defaultMonth = new Date(
             now.getFullYear(),
@@ -283,16 +439,64 @@ function Home() {
       setIsLoading(true);
       setStatusMessage("Searching for the best deals that fit your budget…");
 
-      try {
-        // Get mock data first — always available as fallback, and for activities
-        const destData = getDestinationData(p.arrival);
+      // Determine if this is a multi-leg trip
+      const hasExtraLegs = !!(p.extraLegs && p.extraLegs.length > 0);
+      setIsMultiLeg(hasExtraLegs);
 
-        // Determine off-peak savings percent
+      try {
+        // ─── MULTI-LEG PATH ──────────────────────────────────────
+        if (hasExtraLegs && p.extraLegs) {
+          // For multi-leg, we compute locally with mock data
+          const multiResult = computeMultiLegTrip(
+            p.departure,
+            p.arrival,
+            effectiveDepartureDate,
+            effectiveReturnDate,
+            p.extraLegs,
+            p.travelers,
+            budget,
+            effectiveOffPeak,
+            p.flexibleDates,
+            p.driving,
+          );
+          multiResult.flexibleDates = p.flexibleDates;
+          multiResult.flexibleDatesMonth = flexibleDatesMonth;
+
+          setMultiLegResult(multiResult);
+          setResult(null);
+
+          logKpiEvent({
+            data: {
+              event_type: "trip_planned",
+              budget,
+              budgetGap: multiResult.isFeasible
+                ? multiResult.budgetGap
+                : undefined,
+              isFeasible: multiResult.isFeasible,
+              totalCost: multiResult.totalCost,
+            },
+          }).catch(() => {});
+
+          if (multiResult.isFeasible) {
+            setStatusMessage(
+              `Trip found! Total: ${multiResult.totalCost.toLocaleString("en-US")} — ${multiResult.budgetGap.toLocaleString("en-US")} under your budget.`,
+            );
+          } else {
+            setStatusMessage(
+              `The cheapest multi-stop trip is over your budget. Try fewer stops or a different route.`,
+            );
+          }
+          setIsLoading(false);
+          setStep("results");
+          return;
+        }
+
+        // ─── SINGLE-LEG PATH (unchanged) ─────────────────────────
+        const destData = getDestinationData(p.arrival);
         const savingsPercent = effectiveOffPeak
           ? (destData?.seasonality?.savingsPercent ?? 0)
           : 0;
 
-        // Try real API for flights and hotels (parallel fetch, skip flights if driving)
         const [apiFlights, apiHotels] = await Promise.all([
           p.driving
             ? Promise.resolve([] as Flight[])
@@ -313,7 +517,6 @@ function Home() {
           }),
         ]);
 
-        // Merge: prefer real API results, fall back to mock data
         const flights: Flight[] =
           apiFlights.length > 0 ? apiFlights : (destData?.flights ?? []);
         const hotels: Hotel[] =
@@ -321,8 +524,10 @@ function Home() {
         const activities: Activity[] = destData?.activities ?? [];
 
         if (flights.length === 0 && hotels.length === 0) {
-          // No data at all — unknown destination or empty data
-          const nights = calcNights(effectiveDepartureDate, effectiveReturnDate);
+          const nights = calcNights(
+            effectiveDepartureDate,
+            effectiveReturnDate,
+          );
           const computedResult: TripResult = {
             flights: [],
             hotel: null,
@@ -340,12 +545,16 @@ function Home() {
             driving: p.driving,
           };
           setResult(computedResult);
+          setMultiLegResult(null);
           logTripKpi(computedResult, budget);
           setStatusMessage(
             `We couldn't find a trip from ${p.departure} to ${p.arrival} that fits your ${budget.toLocaleString("en-US")} budget.`,
           );
         } else {
-          const nights = calcNights(effectiveDepartureDate, effectiveReturnDate);
+          const nights = calcNights(
+            effectiveDepartureDate,
+            effectiveReturnDate,
+          );
           const tripResult = computeTrip(
             flights,
             hotels,
@@ -358,13 +567,11 @@ function Home() {
             p.driving,
           );
 
-          // Attach departure/arrival and flexible dates info to result
           tripResult.departure = p.departure;
           tripResult.arrival = p.arrival;
           tripResult.flexibleDates = p.flexibleDates;
           tripResult.flexibleDatesMonth = flexibleDatesMonth;
 
-          // Mark as not feasible if no flights remain (and not driving)
           if (
             !p.driving &&
             tripResult.isFeasible &&
@@ -374,6 +581,7 @@ function Home() {
           }
 
           setResult(tripResult);
+          setMultiLegResult(null);
           logTripKpi(tripResult, budget);
 
           if (tripResult.isFeasible) {
@@ -409,30 +617,12 @@ function Home() {
             flexibleDatesMonth,
             driving: p.driving,
           });
-          logTripKpi(
-            {
-              flights: [],
-              hotel: null,
-              hotels: [],
-              activities: [],
-              totalCost: budget + 500,
-              nights: calcNights(effectiveDepartureDate, effectiveReturnDate),
-              budgetGap: 0,
-              isFeasible: false,
-              departure: p.departure,
-              arrival: p.arrival,
-              offPeak: effectiveOffPeak,
-              flexibleDates: p.flexibleDates,
-              flexibleDatesMonth,
-              driving: p.driving,
-            },
-            budget,
-          );
-          setStatusMessage(
-            `We couldn't find a trip from ${p.departure} to ${p.arrival} that fits your ${budget.toLocaleString("en-US")} budget.`,
-          );
+          setMultiLegResult(null);
         } else {
-          const nights = calcNights(effectiveDepartureDate, effectiveReturnDate);
+          const nights = calcNights(
+            effectiveDepartureDate,
+            effectiveReturnDate,
+          );
           const tripResult = computeTrip(
             destData.flights,
             destData.hotels,
@@ -456,6 +646,7 @@ function Home() {
             tripResult.isFeasible = false;
           }
           setResult(tripResult);
+          setMultiLegResult(null);
           logTripKpi(tripResult, budget);
           setStatusMessage(
             tripResult.isFeasible
@@ -471,7 +662,7 @@ function Home() {
     [budget],
   );
 
-  /** Log a trip_planned KPI event (fire-and-forget — don't block the UI) */
+  /** Log a trip_planned KPI event (fire-and-forget) */
   const logTripKpi = useCallback(
     (tripResult: TripResult, tripBudget: number) => {
       logKpiEvent({
@@ -483,9 +674,7 @@ function Home() {
           peakTotalCost: tripResult.peakTotalCost,
           totalCost: tripResult.totalCost,
         },
-      }).catch(() => {
-        // Silently ignore — KPI logging must not break the UX
-      });
+      }).catch(() => {});
     },
     [],
   );
@@ -495,12 +684,16 @@ function Home() {
     setBudget(0);
     setParams(null);
     setResult(null);
+    setMultiLegResult(null);
+    setIsMultiLeg(false);
     setStatusMessage("Let's plan a new trip. What's your budget?");
   }, []);
 
   const handleBackToDetails = useCallback(() => {
     setStep("details");
     setResult(null);
+    setMultiLegResult(null);
+    setIsMultiLeg(false);
     setStatusMessage("Adjust your trip details.");
   }, []);
 
@@ -538,7 +731,9 @@ function Home() {
             {step !== "budget" && (
               <button
                 type="button"
-                onClick={step === "results" ? handleBackToDetails : handleStartOver}
+                onClick={
+                  step === "results" ? handleBackToDetails : handleStartOver
+                }
                 className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
               >
                 {step === "details" ? "Change budget" : "Edit trip"}
@@ -565,7 +760,8 @@ function Home() {
           const isActive = s === step;
           const isPast =
             (step === "details" && s === "budget") ||
-            (step === "results" && (s === "budget" || s === "details"));
+            (step === "results" &&
+              (s === "budget" || s === "details"));
           return (
             <div key={s} className="flex items-center gap-2">
               {i > 0 && (
@@ -603,12 +799,10 @@ function Home() {
             role="status"
             aria-label="Finding your trip"
           >
-            {/* Spinner */}
             <div className="relative h-16 w-16">
               <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-teal-200" />
               <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-teal-600 border-t-transparent" />
             </div>
-
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900">
                 Searching for your trip…
@@ -617,8 +811,6 @@ function Home() {
                 Finding the best flights, stays, and activities
               </p>
             </div>
-
-            {/* Skeleton cards */}
             <div className="w-full max-w-md space-y-3">
               {[1, 2, 3].map((i) => (
                 <div
@@ -642,18 +834,38 @@ function Home() {
                 onFind={handleFind}
               />
             )}
-            {step === "results" && result && params && (
-              <ResultsStep
-                result={result}
-                departure={params.departure}
-                arrival={params.arrival}
-                budget={budget}
-                travelers={params.travelers}
-                departureDate={params.departureDate}
-                returnDate={params.returnDate}
-                onStartOver={handleStartOver}
-                onBack={handleBackToDetails}
-              />
+            {step === "results" && (
+              <>
+                {/* Multi-leg results */}
+                {isMultiLeg && multiLegResult && (
+                  <ResultsStep
+                    result={null as unknown as TripResult}
+                    departure={params?.departure ?? ""}
+                    arrival={params?.arrival ?? ""}
+                    budget={budget}
+                    travelers={params?.travelers ?? 1}
+                    departureDate={params?.departureDate}
+                    returnDate={params?.returnDate}
+                    onStartOver={handleStartOver}
+                    onBack={handleBackToDetails}
+                    multiLegResult={multiLegResult}
+                  />
+                )}
+                {/* Single-leg results */}
+                {!isMultiLeg && result && params && (
+                  <ResultsStep
+                    result={result}
+                    departure={params.departure}
+                    arrival={params.arrival}
+                    budget={budget}
+                    travelers={params.travelers}
+                    departureDate={params.departureDate}
+                    returnDate={params.returnDate}
+                    onStartOver={handleStartOver}
+                    onBack={handleBackToDetails}
+                  />
+                )}
+              </>
             )}
           </div>
         )}
