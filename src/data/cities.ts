@@ -22,6 +22,23 @@ export const CITY_IATA: Record<string, string> = {
   philadelphia: "PHL",
   "washington dc": "DCA",
   portland: "PDX",
+  // New US destinations
+  nashville: "BNA",
+  austin: "AUS",
+  "san diego": "SAN",
+  "new orleans": "MSY",
+  honolulu: "HNL",
+  // International destinations
+  toronto: "YYZ",
+  vancouver: "YVR",
+  "mexico city": "MEX",
+  cancun: "CUN",
+  london: "LHR",
+  paris: "CDG",
+  barcelona: "BCN",
+  rome: "FCO",
+  tokyo: "NRT",
+  bangkok: "BKK",
 };
 
 /** All known city names for autocomplete suggestions */
