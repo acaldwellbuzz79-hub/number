@@ -107,6 +107,45 @@ export interface Event {
   emoji: string; // icon for the card
 }
 
+/** User input for a single leg of a multi-leg trip */
+export interface LegInput {
+  /** Arrival/destination city for this leg (departure auto-set from previous leg) */
+  arrival: string;
+  departureDate: string;
+  returnDate: string;
+}
+
+/** A single completed leg of a multi-leg trip */
+export interface TripLeg {
+  departure: string;
+  arrival: string;
+  departureDate: string;
+  returnDate: string;
+  nights: number;
+  flights: Flight[];
+  hotel: Hotel | null;
+  hotels: Hotel[];
+  activities: Activity[];
+  totalCost: number;
+  offPeak?: boolean;
+  flexibleDates?: boolean;
+  flexibleDatesMonth?: string;
+}
+
+/** Computed multi-leg trip result */
+export interface MultiLegTripResult {
+  legs: TripLeg[];
+  totalCost: number;
+  budgetGap: number;
+  isFeasible: boolean;
+  travelers: number;
+  budget: number;
+  peakTotalCost?: number;
+  offPeak?: boolean;
+  flexibleDates?: boolean;
+  flexibleDatesMonth?: string;
+}
+
 /** All data for a known destination */
 export interface DestinationData {
   flights: Flight[];

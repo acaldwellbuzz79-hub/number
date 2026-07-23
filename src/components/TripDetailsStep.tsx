@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { KNOWN_DESTINATIONS, getDestinationData } from "~/data/mockData";
 import { KNOWN_CITIES } from "~/data/cities";
+import { PremiumFeatures } from "~/components/PremiumFeatures";
+import type { LegInput } from "~/types";
 
 interface TripDetailsStepProps {
   budget: number;
@@ -14,6 +16,8 @@ interface TripDetailsStepProps {
     offPeak: boolean;
     flexibleDates: boolean;
     driving: boolean;
+    /** Extra legs for multi-destination trips (Premium) */
+    extraLegs?: LegInput[];
   }) => void;
 }
 
@@ -21,6 +25,18 @@ interface TripDetailsStepProps {
 const SORTED_CITIES = [...KNOWN_CITIES].sort((a, b) =>
   a.localeCompare(b, "en", { sensitivity: "base" }),
 );
+
+/**
+ * Check whether Premium mode is active via URL query param (dev toggle).
+ * In production, this would be tied to a user account / premium key.
+ */
+function isPremiumMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).has("premium");
+}
+
+/** Maximum extra legs allowed in Premium */
+const MAX_EXTRA_LEGS = 3;
 
 export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps) {
   const [departure, setDeparture] = useState("");
@@ -32,7 +48,16 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
   const [flexibleDates, setFlexibleDates] = useState(false);
   const [driving, setDriving] = useState(false);
 
-  // Refs for the two select elements
+  // Multi-destination: extra legs beyond the first
+  const [extraLegs, setExtraLegs] = useState<LegInput[]>([]);
+
+  // Premium gate: show upsell modal when user clicks "+ Add destination"
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+
+  // Is premium active (dev toggle or after "upgrade")
+  const premiumActive = isPremiumMode();
+
+  // Refs for the first two select elements
   const depSelectRef = useRef<HTMLSelectElement>(null);
   const arrSelectRef = useRef<HTMLSelectElement>(null);
 
@@ -63,7 +88,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
     const now = new Date();
     const currentYear = now.getFullYear();
 
-    // Look ahead up to 18 months to find an off-peak month
     for (let offset = 0; offset < 18; offset++) {
       const checkMonth = (monthIndex + offset) % 12;
       const checkYear = currentYear + Math.floor((monthIndex + offset) / 12);
@@ -72,8 +96,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
       });
       if (seasonality.offPeak.includes(monthAbbr)) {
         const mm = String(checkMonth + 1).padStart(2, "0");
-        const dd = "01";
-        return `${checkYear}-${mm}-${dd}`;
+        return `${checkYear}-${mm}-01`;
       }
     }
     return "";
@@ -87,11 +110,9 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
       const nextDeparture = getNextOffPeakDate(now.getMonth());
       if (nextDeparture) {
         setDepartureDate(nextDeparture);
-        // Default return: 5 nights later
         const depDate = new Date(nextDeparture);
         depDate.setDate(depDate.getDate() + 5);
-        const retStr = depDate.toISOString().split("T")[0];
-        setReturnDate(retStr);
+        setReturnDate(depDate.toISOString().split("T")[0]);
       }
     }
   }
@@ -99,19 +120,13 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
   /** Handle toggling flexible dates on/off */
   function handleFlexibleDatesToggle(on: boolean) {
     if (on) {
-      // Save current date values so we can restore them later
       prevDatesRef.current = { departureDate, returnDate };
       setFlexibleDates(true);
-      // Clear date fields — we'll auto-pick later
       setDepartureDate("");
       setReturnDate("");
-      // When flexible is on, off-peak is implied and forced
-      if (!offPeak) {
-        setOffPeak(true);
-      }
+      if (!offPeak) setOffPeak(true);
     } else {
       setFlexibleDates(false);
-      // Restore previous date values
       setDepartureDate(prevDatesRef.current.departureDate);
       setReturnDate(prevDatesRef.current.returnDate);
     }
@@ -124,7 +139,54 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
 
   const today = new Date().toISOString().split("T")[0];
 
-  const isValid =
+  /** Get the city name that serves as the departure for a given leg index */
+  function getLegDeparture(legIndex: number): string {
+    if (legIndex === 0) return departure;
+    // Departure for leg N = arrival of leg N-1
+    return extraLegs[legIndex - 1]?.arrival ?? "";
+  }
+
+  /** Add an extra destination leg */
+  function handleAddLeg() {
+    if (premiumActive) {
+      // Premium mode: directly add
+      if (extraLegs.length < MAX_EXTRA_LEGS) {
+        setExtraLegs([...extraLegs, { arrival: "", departureDate: "", returnDate: "" }]);
+      }
+    } else {
+      // Free mode: show premium gate
+      setShowPremiumGate(true);
+    }
+  }
+
+  /** Remove an extra destination leg */
+  function handleRemoveLeg(index: number) {
+    setExtraLegs(extraLegs.filter((_, i) => i !== index));
+  }
+
+  /** Update a field on an extra leg */
+  function updateExtraLeg(index: number, field: keyof LegInput, value: string) {
+    setExtraLegs((prev) =>
+      prev.map((leg, i) => (i === index ? { ...leg, [field]: value } : leg)),
+    );
+  }
+
+  /** Get the minimum return date for an extra leg (at least its departure date) */
+  function getExtraLegMinReturn(legIndex: number): string {
+    return extraLegs[legIndex]?.departureDate || today;
+  }
+
+  // Check if all extra legs have valid dates
+  const extraLegsValid = extraLegs.every(
+    (leg) =>
+      leg.arrival.trim().length > 0 &&
+      ((flexibleDates) ||
+        (leg.departureDate.length > 0 &&
+          leg.returnDate.length > 0 &&
+          leg.returnDate >= leg.departureDate)),
+  );
+
+  const isMainValid =
     departure.trim().length > 0 &&
     arrival.trim().length > 0 &&
     (flexibleDates ||
@@ -133,6 +195,8 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
        returnDate >= departureDate)) &&
     travelers >= 1 &&
     travelers <= 10;
+
+  const isValid = isMainValid && extraLegsValid;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +210,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
       offPeak,
       flexibleDates,
       driving,
+      extraLegs: extraLegs.length > 0 ? extraLegs : undefined,
     });
   };
 
@@ -168,7 +233,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-          {/* ---- Departure & Arrival City Fields ---- */}
+          {/* ---- Leg 1: Departure & Arrival City Fields ---- */}
           <div className="space-y-1">
             {/* Departure */}
             <div>
@@ -185,7 +250,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                   value={departure}
                   onChange={(e) => {
                     setDeparture(e.target.value);
-                    // Auto-focus arrival after selecting departure
                     if (e.target.value) {
                       setTimeout(() => arrSelectRef.current?.focus(), 0);
                     }
@@ -202,7 +266,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                     </option>
                   ))}
                 </select>
-                {/* Custom dropdown chevron */}
                 <div
                   className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   aria-hidden="true"
@@ -220,7 +283,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
-                {/* Clear button */}
                 {departure.length > 0 && (
                   <button
                     type="button"
@@ -325,7 +387,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                     </option>
                   ))}
                 </select>
-                {/* Custom dropdown chevron */}
                 <div
                   className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   aria-hidden="true"
@@ -343,7 +404,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </div>
-                {/* Clear button */}
                 {arrival.length > 0 && (
                   <button
                     type="button"
@@ -374,6 +434,190 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
             </div>
           </div>
 
+          {/* ---- Extra Legs (Multi-Destination, Premium) ---- */}
+          {extraLegs.map((leg, idx) => {
+            const legDeparture = getLegDeparture(idx);
+            return (
+              <div
+                key={idx}
+                className="animate-step-enter rounded-xl border-2 border-teal-200 bg-teal-50/30 p-4"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-teal-800">
+                    Stop {idx + 2}: {legDeparture || "(previous destination)"} → ...
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLeg(idx)}
+                    className="rounded-lg p-1 text-gray-400 transition-colors hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                    aria-label={`Remove stop ${idx + 2}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Departure (read-only, auto-set) */}
+                <div className="mb-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-500">
+                    From
+                  </label>
+                  <div className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-base text-gray-500 min-h-[48px] flex items-center">
+                    {legDeparture || "—"}
+                  </div>
+                </div>
+
+                {/* Arrival */}
+                <div className="mb-3">
+                  <label
+                    htmlFor={`extra-arrival-${idx}`}
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Destination
+                  </label>
+                  <div className="relative">
+                    <select
+                      id={`extra-arrival-${idx}`}
+                      value={leg.arrival}
+                      onChange={(e) => updateExtraLeg(idx, "arrival", e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-base text-gray-900 focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px]"
+                      aria-label={`Destination for stop ${idx + 2}`}
+                    >
+                      <option value="" disabled>
+                        Select a city…
+                      </option>
+                      {SORTED_CITIES.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      aria-hidden="true"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date range for extra leg */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor={`extra-dep-${idx}`}
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Arrive
+                    </label>
+                    <input
+                      id={`extra-dep-${idx}`}
+                      type="date"
+                      value={leg.departureDate}
+                      onChange={(e) => updateExtraLeg(idx, "departureDate", e.target.value)}
+                      min={today}
+                      disabled={flexibleDates}
+                      className={`w-full rounded-xl border px-3 py-3 text-sm focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px] ${
+                        flexibleDates
+                          ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                          : "border-gray-300 bg-white text-gray-900"
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor={`extra-ret-${idx}`}
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Depart
+                    </label>
+                    <input
+                      id={`extra-ret-${idx}`}
+                      type="date"
+                      value={leg.returnDate}
+                      onChange={(e) => updateExtraLeg(idx, "returnDate", e.target.value)}
+                      min={getExtraLegMinReturn(idx)}
+                      disabled={flexibleDates}
+                      className={`w-full rounded-xl border px-3 py-3 text-sm focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px] ${
+                        flexibleDates
+                          ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                          : "border-gray-300 bg-white text-gray-900"
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* "+ Add destination" button */}
+          {extraLegs.length < MAX_EXTRA_LEGS && (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleAddLeg}
+                className={`inline-flex items-center gap-1.5 rounded-xl border-2 border-dashed px-5 py-3 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/30 min-h-[48px] ${
+                  premiumActive
+                    ? "border-teal-400 bg-teal-50/30 text-teal-700 hover:border-teal-500 hover:bg-teal-50"
+                    : "border-teal-300 bg-white text-teal-600 hover:border-teal-400 hover:bg-teal-50"
+                }`}
+                aria-label={
+                  premiumActive
+                    ? "Add another destination"
+                    : "Add another destination — Premium feature"
+                }
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                + Add destination
+                {!premiumActive && (
+                  <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                    PREMIUM
+                  </span>
+                )}
+              </button>
+              {!premiumActive && (
+                <p className="mt-1 text-xs text-gray-400">
+                  Multi-stop trips are a Premium feature
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Off-peak suggestion card — shown when arrival has seasonality data */}
           {seasonality && (
             <div
@@ -382,7 +626,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
               aria-label="Off-peak travel suggestion"
             >
               <div className="flex items-start gap-3">
-                {/* Toggle switch — disabled when flexibleDates is on */}
                 <div className="relative mt-0.5 shrink-0">
                   <input
                     id="off-peak-toggle"
@@ -491,7 +734,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
             </div>
           </div>
 
-          {/* Flexible dates checkbox — subtle, same weight as off-peak toggle */}
+          {/* Flexible dates checkbox */}
           <div
             data-testid="flexible-dates-section"
             className={`rounded-xl border px-4 py-3.5 animate-step-enter ${
@@ -612,6 +855,69 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
           </div>
         </form>
       </div>
+
+      {/* ---- Premium Gate Modal ---- */}
+      {showPremiumGate && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-step-enter"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="premium-gate-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            {/* Close button */}
+            <div className="mb-4 flex items-center justify-between">
+              <h3
+                id="premium-gate-title"
+                className="text-lg font-bold text-gray-900"
+              >
+                Multi-Destination Planning
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowPremiumGate(false)}
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                aria-label="Close"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="mb-5 text-sm leading-relaxed text-gray-600">
+              Plan trips that visit multiple cities in one go — perfect for road
+              trips, tours, and multi-stop vacations. Add up to 3 extra stops to
+              any trip.
+            </p>
+
+            {/* Inline premium upsell */}
+            <PremiumFeatures variant="banner" />
+
+            {/* Dev toggle hint */}
+            <p className="mt-3 text-center text-xs text-gray-400">
+              Already have Premium?{" "}
+              <a
+                href="?premium=true"
+                className="font-medium text-teal-600 underline underline-offset-2 hover:text-teal-800"
+              >
+                Activate with premium key
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
