@@ -534,15 +534,25 @@ function Home() {
             <span aria-hidden="true">🌴</span>
             VacayScout
           </button>
-          {step !== "budget" && (
-            <button
-              type="button"
-              onClick={step === "results" ? handleBackToDetails : handleStartOver}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+          <div className="flex items-center gap-2">
+            {step !== "budget" && (
+              <button
+                type="button"
+                onClick={step === "results" ? handleBackToDetails : handleStartOver}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+              >
+                {step === "details" ? "Change budget" : "Edit trip"}
+              </button>
+            )}
+            <a
+              href="https://buy.stripe.com/6oUfZjeGO05E1067NxafS00"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-teal-600 transition-colors hover:bg-teal-50 hover:text-teal-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
             >
-              {step === "details" ? "Change budget" : "Edit trip"}
-            </button>
-          )}
+              Upgrade
+            </a>
+          </div>
         </div>
       </header>
 

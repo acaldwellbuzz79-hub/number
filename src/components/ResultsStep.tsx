@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import type { TripResult, Hotel, HotelTier, Event } from "~/types";
 import { PaymentPlanSection } from "~/components/PaymentPlanSection";
+import { PremiumFeatures } from "~/components/PremiumFeatures";
 import { getDestinationData, KNOWN_DESTINATIONS } from "~/data/mockData";
 import { logKpiEvent } from "~/data/kpiStore";
 
@@ -1096,6 +1097,17 @@ export function ResultsStep({
 
         {/* ---- Payment plan section ---- */}
         <PaymentPlanSection tripTotal={dynamicTotalCost} />
+
+        {/* ---- Premium upsell ---- */}
+        <section className="mb-8" aria-labelledby="premium-upsell-heading">
+          <h3
+            id="premium-upsell-heading"
+            className="sr-only"
+          >
+            VacayScout Premium
+          </h3>
+          <PremiumFeatures variant="banner" />
+        </section>
 
         {/* ---- Start over ---- */}
         <div className="mb-12 text-center">
