@@ -6,7 +6,7 @@ import type { DestinationData } from "~/types";
  * In production this would come from real APIs (Amadeus, Skyscanner, etc.).
  *
  * Affiliate links:
- * - Flights: Kayak search with affiliate tracking (ai= param)
+ * - Flights: Aviasales/Travelpayouts search with affiliate marker
  * - Hotels: Stay22 affiliate links (aggregates Booking.com + Expedia + Hotels.com)
  * Dates: August 3–8, 2026
  *
@@ -16,7 +16,7 @@ import type { DestinationData } from "~/types";
  * - premium: 4-star but still affordable (Hyatt Place, Hilton Garden Inn, etc.)
  *
  * --- Affiliate ID configuration ---
- * Set VITE_STAY22_AID and VITE_KAYAK_AFFILIATE in your .env file.
+ * Set VITE_STAY22_AID and VITE_AVIASALES_MARKER in your .env file.
  * When unset links use demo IDs that still work (no commission tracking).
  */
 
@@ -32,30 +32,21 @@ function stay22Aid(): string {
   return "vacayscout_demo";
 }
 
-/** Read Kayak affiliate ID from env, or fall back to a demo/test value */
-function kayakAffiliate(): string {
-  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_KAYAK_AFFILIATE) {
-    return import.meta.env.VITE_KAYAK_AFFILIATE as string;
+/** Read Aviasales/Travelpayouts affiliate marker from env, or fall back to "direct_search" (testing marker) */
+function aviasalesMarker(): string {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_AVIASALES_MARKER) {
+    return import.meta.env.VITE_AVIASALES_MARKER as string;
   }
-  if (typeof process !== "undefined" && process.env?.KAYAK_AFFILIATE) {
-    return process.env.KAYAK_AFFILIATE;
+  if (typeof process !== "undefined" && process.env?.AVIASALES_MARKER) {
+    return process.env.AVIASALES_MARKER;
   }
-  return "vacayscout_demo";
+  return "direct_search";
 }
 
-/** Build a Kayak flight search URL */
+/** Build an Aviasales flight search URL. Format: /search/{origin}{depDate}{dest}{retDate}1?marker={marker}. Dates are DDMMYY. */
 function flightLink(origin: string, dest: string, depDate: string, retDate: string): string {
-  // Convert DDMMYY date format to YYYY-MM-DD for Kayak
-  const fmtDate = (ddmmyy: string): string => {
-    const day = ddmmyy.substring(0, 2);
-    const month = ddmmyy.substring(2, 4);
-    const year = `20${ddmmyy.substring(4, 6)}`;
-    return `${year}-${month}-${day}`;
-  };
-  const dep = fmtDate(depDate);
-  const ret = fmtDate(retDate);
-  const aff = kayakAffiliate();
-  return `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}?ai=${aff}`;
+  const marker = aviasalesMarker();
+  return `https://aviasales.com/search/${origin}${depDate}${dest}${retDate}1?marker=${marker}`;
 }
 
 /** Build a Stay22 hotel search URL */
