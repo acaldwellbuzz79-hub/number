@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect } from "react";
 import { KNOWN_DESTINATIONS, getDestinationData } from "~/data/mockData";
 import { KNOWN_CITIES } from "~/data/cities";
 
@@ -17,6 +17,11 @@ interface TripDetailsStepProps {
   }) => void;
 }
 
+/** All known cities sorted alphabetically for dropdown display */
+const SORTED_CITIES = [...KNOWN_CITIES].sort((a, b) =>
+  a.localeCompare(b, "en", { sensitivity: "base" }),
+);
+
 export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps) {
   const [departure, setDeparture] = useState("");
   const [arrival, setArrival] = useState("");
@@ -27,24 +32,15 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
   const [flexibleDates, setFlexibleDates] = useState(false);
   const [driving, setDriving] = useState(false);
 
+  // Refs for the two select elements
+  const depSelectRef = useRef<HTMLSelectElement>(null);
+  const arrSelectRef = useRef<HTMLSelectElement>(null);
+
   // Store previous date values so we can restore them when unchecking flexible dates
   const prevDatesRef = useRef<{ departureDate: string; returnDate: string }>({
     departureDate: "",
     returnDate: "",
   });
-
-  // Autocomplete state for departure
-  const [showDepSuggestions, setShowDepSuggestions] = useState(false);
-  const [depHighlightedIdx, setDepHighlightedIdx] = useState(-1);
-
-  // Autocomplete state for arrival
-  const [showArrSuggestions, setShowArrSuggestions] = useState(false);
-  const [arrHighlightedIdx, setArrHighlightedIdx] = useState(-1);
-
-  const depInputRef = useRef<HTMLInputElement>(null);
-  const arrInputRef = useRef<HTMLInputElement>(null);
-  const depSuggestionsRef = useRef<HTMLDivElement>(null);
-  const arrSuggestionsRef = useRef<HTMLDivElement>(null);
 
   // Derive seasonality from the selected arrival city
   const arrivalLower = arrival.toLowerCase().trim();
@@ -121,51 +117,10 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
     }
   }
 
-  // Focus departure input on mount
+  // Focus departure select on mount
   useEffect(() => {
-    depInputRef.current?.focus();
+    depSelectRef.current?.focus();
   }, []);
-
-  // Close suggestions when clicking outside (departure)
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        depSuggestionsRef.current &&
-        !depSuggestionsRef.current.contains(e.target as Node) &&
-        depInputRef.current &&
-        !depInputRef.current.contains(e.target as Node)
-      ) {
-        setShowDepSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  // Close suggestions when clicking outside (arrival)
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        arrSuggestionsRef.current &&
-        !arrSuggestionsRef.current.contains(e.target as Node) &&
-        arrInputRef.current &&
-        !arrInputRef.current.contains(e.target as Node)
-      ) {
-        setShowArrSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  // Filtered suggestions for each field
-  const depFiltered = KNOWN_CITIES.filter((c) =>
-    c.toLowerCase().includes(departure.toLowerCase().trim()),
-  ).slice(0, 5);
-
-  const arrFiltered = KNOWN_CITIES.filter((c) =>
-    c.toLowerCase().includes(arrival.toLowerCase().trim()),
-  ).slice(0, 5);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -194,93 +149,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
     });
   };
 
-  // --- Shared autocomplete helpers ---
-
-  const selectDepSuggestion = (city: string) => {
-    setDeparture(city);
-    setShowDepSuggestions(false);
-    setDepHighlightedIdx(-1);
-    // Move focus to arrival after selection
-    arrInputRef.current?.focus();
-  };
-
-  const selectArrSuggestion = (city: string) => {
-    setArrival(city);
-    setShowArrSuggestions(false);
-    setArrHighlightedIdx(-1);
-    arrInputRef.current?.focus();
-  };
-
-  const handleDepKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!showDepSuggestions || depFiltered.length === 0) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setDepHighlightedIdx((prev) =>
-          prev < depFiltered.length - 1 ? prev + 1 : 0,
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setDepHighlightedIdx((prev) =>
-          prev > 0 ? prev - 1 : depFiltered.length - 1,
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (depHighlightedIdx >= 0 && depHighlightedIdx < depFiltered.length) {
-          selectDepSuggestion(depFiltered[depHighlightedIdx]);
-        } else if (depFiltered.length > 0) {
-          selectDepSuggestion(depFiltered[0]);
-        }
-        break;
-      case "Escape":
-        e.preventDefault();
-        setShowDepSuggestions(false);
-        setDepHighlightedIdx(-1);
-        break;
-      case "Tab":
-        setShowDepSuggestions(false);
-        break;
-    }
-  };
-
-  const handleArrKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!showArrSuggestions || arrFiltered.length === 0) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setArrHighlightedIdx((prev) =>
-          prev < arrFiltered.length - 1 ? prev + 1 : 0,
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setArrHighlightedIdx((prev) =>
-          prev > 0 ? prev - 1 : arrFiltered.length - 1,
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (arrHighlightedIdx >= 0 && arrHighlightedIdx < arrFiltered.length) {
-          selectArrSuggestion(arrFiltered[arrHighlightedIdx]);
-        } else if (arrFiltered.length > 0) {
-          selectArrSuggestion(arrFiltered[0]);
-        }
-        break;
-      case "Escape":
-        e.preventDefault();
-        setShowArrSuggestions(false);
-        setArrHighlightedIdx(-1);
-        break;
-      case "Tab":
-        setShowArrSuggestions(false);
-        break;
-    }
-  };
-
   return (
     <div className="flex flex-1 flex-col items-center px-4 py-6 sm:py-8">
       <div className="w-full max-w-md">
@@ -303,7 +171,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
           {/* ---- Departure & Arrival City Fields ---- */}
           <div className="space-y-1">
             {/* Departure */}
-            <div className="relative">
+            <div>
               <label
                 htmlFor="departure-city"
                 className="mb-1.5 block text-sm font-medium text-gray-700"
@@ -311,43 +179,56 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                 {driving ? "Where are you driving from?" : "Where are you flying from?"}
               </label>
               <div className="relative">
-                <input
-                  ref={depInputRef}
+                <select
+                  ref={depSelectRef}
                   id="departure-city"
-                  type="text"
                   value={departure}
                   onChange={(e) => {
                     setDeparture(e.target.value);
-                    setShowDepSuggestions(true);
-                    setDepHighlightedIdx(-1);
+                    // Auto-focus arrival after selecting departure
+                    if (e.target.value) {
+                      setTimeout(() => arrSelectRef.current?.focus(), 0);
+                    }
                   }}
-                  onFocus={() => {
-                    if (departure.length > 0) setShowDepSuggestions(true);
-                  }}
-                  onKeyDown={handleDepKeyDown}
-                  placeholder="e.g. Chicago, Dallas, Seattle…"
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-base text-gray-900 placeholder:text-gray-400 focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px]"
-                  autoComplete="off"
-                  role="combobox"
-                  aria-expanded={showDepSuggestions && depFiltered.length > 0}
-                  aria-controls="departure-suggestions"
-                  aria-autocomplete="list"
-                  aria-activedescendant={
-                    depHighlightedIdx >= 0
-                      ? `dep-option-${depHighlightedIdx}`
-                      : undefined
-                  }
-                />
+                  className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-base text-gray-900 focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px]"
+                  aria-label="Departure city"
+                >
+                  <option value="" disabled>
+                    Select a city…
+                  </option>
+                  {SORTED_CITIES.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+                {/* Custom dropdown chevron */}
+                <div
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  aria-hidden="true"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
                 {/* Clear button */}
                 {departure.length > 0 && (
                   <button
                     type="button"
                     onClick={() => {
                       setDeparture("");
-                      setShowDepSuggestions(false);
-                      depInputRef.current?.focus();
+                      depSelectRef.current?.focus();
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     aria-label="Clear departure city"
                   >
                     <svg
@@ -367,44 +248,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                   </button>
                 )}
               </div>
-
-              {/* Departure suggestions dropdown */}
-              {showDepSuggestions && depFiltered.length > 0 && departure.length > 0 && (
-                <div
-                  ref={depSuggestionsRef}
-                  id="departure-suggestions"
-                  className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
-                  role="listbox"
-                  aria-label="Departure city suggestions"
-                >
-                  {depFiltered.map((c, idx) => {
-                    const isHighlighted = idx === depHighlightedIdx;
-                    return (
-                      <button
-                        key={c}
-                        id={`dep-option-${idx}`}
-                        type="button"
-                        className={`w-full px-4 py-3 text-left text-base text-gray-700 capitalize transition-colors first:pt-3.5 last:pb-3.5 min-h-[48px] ${
-                          isHighlighted
-                            ? "bg-teal-50 text-teal-800"
-                            : "hover:bg-teal-50/50"
-                        }`}
-                        role="option"
-                        aria-selected={c === departure}
-                        onClick={() => selectDepSuggestion(c)}
-                        onMouseEnter={() => setDepHighlightedIdx(idx)}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span aria-hidden="true" className="text-lg">
-                            🛫
-                          </span>
-                          {c}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
             {/* Driving checkbox */}
@@ -457,7 +300,7 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
             </div>
 
             {/* Arrival */}
-            <div className="relative">
+            <div>
               <label
                 htmlFor="arrival-city"
                 className="mb-1.5 block text-sm font-medium text-gray-700"
@@ -465,43 +308,50 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                 Where are you going?
               </label>
               <div className="relative">
-                <input
-                  ref={arrInputRef}
+                <select
+                  ref={arrSelectRef}
                   id="arrival-city"
-                  type="text"
                   value={arrival}
-                  onChange={(e) => {
-                    setArrival(e.target.value);
-                    setShowArrSuggestions(true);
-                    setArrHighlightedIdx(-1);
-                  }}
-                  onFocus={() => {
-                    if (arrival.length > 0) setShowArrSuggestions(true);
-                  }}
-                  onKeyDown={handleArrKeyDown}
-                  placeholder="e.g. Miami, Las Vegas, New York…"
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-base text-gray-900 placeholder:text-gray-400 focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px]"
-                  autoComplete="off"
-                  role="combobox"
-                  aria-expanded={showArrSuggestions && arrFiltered.length > 0}
-                  aria-controls="arrival-suggestions"
-                  aria-autocomplete="list"
-                  aria-activedescendant={
-                    arrHighlightedIdx >= 0
-                      ? `arr-option-${arrHighlightedIdx}`
-                      : undefined
-                  }
-                />
+                  onChange={(e) => setArrival(e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-base text-gray-900 focus:border-teal-500 focus:outline-none focus-visible:ring-3 focus-visible:ring-teal-500/20 min-h-[48px]"
+                  aria-label="Arrival city"
+                >
+                  <option value="" disabled>
+                    Select a city…
+                  </option>
+                  {SORTED_CITIES.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+                {/* Custom dropdown chevron */}
+                <div
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  aria-hidden="true"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
                 {/* Clear button */}
                 {arrival.length > 0 && (
                   <button
                     type="button"
                     onClick={() => {
                       setArrival("");
-                      setShowArrSuggestions(false);
-                      arrInputRef.current?.focus();
+                      arrSelectRef.current?.focus();
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     aria-label="Clear arrival city"
                   >
                     <svg
@@ -521,44 +371,6 @@ export function TripDetailsStep({ budget, onBack, onFind }: TripDetailsStepProps
                   </button>
                 )}
               </div>
-
-              {/* Arrival suggestions dropdown */}
-              {showArrSuggestions && arrFiltered.length > 0 && arrival.length > 0 && (
-                <div
-                  ref={arrSuggestionsRef}
-                  id="arrival-suggestions"
-                  className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
-                  role="listbox"
-                  aria-label="Arrival city suggestions"
-                >
-                  {arrFiltered.map((c, idx) => {
-                    const isHighlighted = idx === arrHighlightedIdx;
-                    return (
-                      <button
-                        key={c}
-                        id={`arr-option-${idx}`}
-                        type="button"
-                        className={`w-full px-4 py-3 text-left text-base text-gray-700 capitalize transition-colors first:pt-3.5 last:pb-3.5 min-h-[48px] ${
-                          isHighlighted
-                            ? "bg-teal-50 text-teal-800"
-                            : "hover:bg-teal-50/50"
-                        }`}
-                        role="option"
-                        aria-selected={c === arrival}
-                        onClick={() => selectArrSuggestion(c)}
-                        onMouseEnter={() => setArrHighlightedIdx(idx)}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span aria-hidden="true" className="text-lg">
-                            📍
-                          </span>
-                          {c}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
 
