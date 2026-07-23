@@ -25,6 +25,7 @@ export const CITY_IATA: Record<string, string> = {
   // New US destinations
   nashville: "BNA",
   austin: "AUS",
+  tampa: "TPA",
   "san diego": "SAN",
   "new orleans": "MSY",
   honolulu: "HNL",

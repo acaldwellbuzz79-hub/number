@@ -1459,6 +1459,41 @@ const destinations: Record<string, DestinationData> = {
     ],
   },
 
+  tampa: {
+    seasonality: {
+      peak: ["Dec", "Jan", "Feb", "Mar", "Apr"],
+      shoulder: ["May", "Oct", "Nov"],
+      offPeak: ["Jun", "Jul", "Aug", "Sep"],
+      savingsPercent: 25,
+    },
+    flights: [
+      { id: "tp-fl-1", airline: "Southwest", departureTime: "7:00 AM", arrivalTime: "8:25 AM", duration: "1h 25m", price: 89, stops: 0, departureAirport: "ATL", arrivalAirport: "TPA", bookingLink: flightLink("ATL", "TPA", DEP, RET) },
+      { id: "tp-fl-2", airline: "Delta", departureTime: "10:30 AM", arrivalTime: "11:55 AM", duration: "1h 25m", price: 135, stops: 0, departureAirport: "ATL", arrivalAirport: "TPA", bookingLink: flightLink("ATL", "TPA", DEP, RET) },
+      { id: "tp-fl-3", airline: "Spirit", departureTime: "2:00 PM", arrivalTime: "3:25 PM", duration: "1h 25m", price: 65, stops: 0, departureAirport: "ATL", arrivalAirport: "TPA", bookingLink: flightLink("ATL", "TPA", DEP, RET) },
+      { id: "tp-fl-4", airline: "Frontier", departureTime: "5:30 PM", arrivalTime: "6:55 PM", duration: "1h 25m", price: 55, stops: 0, departureAirport: "ATL", arrivalAirport: "TPA", bookingLink: flightLink("ATL", "TPA", DEP, RET) },
+    ],
+    hotels: [
+      { id: "tp-ht-1", name: "Tampa Inn Near Busch Gardens", rating: 3.9, pricePerNight: 55, amenities: ["WiFi", "Pool", "Free Parking"], image: "🏨", tier: "budget", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+      { id: "tp-ht-2", name: "Red Roof Inn Tampa Fairgrounds", rating: 3.7, pricePerNight: 48, amenities: ["WiFi", "Free Parking", "Pet Friendly"], image: "🏨", tier: "budget", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+      { id: "tp-ht-3", name: "La Quinta Inn Tampa Bay Stadium", rating: 4.0, pricePerNight: 89, amenities: ["WiFi", "Free Breakfast", "Pool"], image: "🏨", tier: "mid", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+      { id: "tp-ht-4", name: "Best Western Tampa Westshore", rating: 4.1, pricePerNight: 105, amenities: ["WiFi", "Free Breakfast", "Pool", "Airport Shuttle"], image: "🏨", tier: "mid", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+      { id: "tp-ht-5", name: "Hyatt Place Tampa Busch Gardens", rating: 4.4, pricePerNight: 145, amenities: ["WiFi", "Pool", "Free Breakfast", "Theme Park Shuttle"], image: "🏢", tier: "premium", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+      { id: "tp-ht-6", name: "Hilton Garden Inn Tampa Ybor", rating: 4.3, pricePerNight: 165, amenities: ["WiFi", "Restaurant", "Gym", "Historic District"], image: "🏢", tier: "premium", bookingLink: hotelLink("Tampa", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "tp-ac-1", name: "Tampa Riverwalk", description: "2.6-mile waterfront path connecting parks, museums, and dining", price: 0, category: "free" },
+      { id: "tp-ac-2", name: "Clearwater Beach", description: "Award-winning white-sand beach just 45 minutes from downtown Tampa", price: 0, category: "free" },
+      { id: "tp-ac-3", name: "Ybor City Historic Walk", description: "Self-guided stroll through Tampa's Cuban cigar-rolling district", price: 0, category: "free" },
+      { id: "tp-ac-4", name: "Busch Gardens Tampa Bay", description: "African-themed amusement park with world-class coasters and animal encounters", price: 89, category: "paid" },
+      { id: "tp-ac-5", name: "The Florida Aquarium", description: "Interactive aquarium with shark dives and wetlands exhibit", price: 35, category: "paid" },
+    ],
+    events: [
+      { name: "Busch Gardens Admission", category: "Attraction", pricePerPerson: 79, description: "Full-day admission to rides, shows, and animal exhibits at Busch Gardens Tampa", bookingLink: "https://www.viator.com/search/Tampa+Busch+Gardens?pid=P00123456", emoji: "🎢" },
+      { name: "Clearwater Dolphin Cruise", category: "Tour", pricePerPerson: 35, description: "Scenic boat tour through Clearwater Bay to spot wild dolphins", bookingLink: "https://www.viator.com/search/Tampa+Clearwater+Dolphin+Cruise?pid=P00123456", emoji: "🐬" },
+      { name: "Ybor City Food & History Tour", category: "Tour", pricePerPerson: 45, description: "Taste Cuban sandwiches and explore the cigar history of Tampa's Latin Quarter", bookingLink: "https://www.viator.com/search/Tampa+Ybor+City+Food+Tour?pid=P00123456", emoji: "🥪" },
+    ],
+  },
+
   "san diego": {
     seasonality: {
       peak: ["Jun", "Jul", "Aug"],
