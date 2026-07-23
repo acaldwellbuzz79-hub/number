@@ -2409,6 +2409,256 @@ const destinations: Record<string, DestinationData> = {
     ],
   },
 
+
+  // ────────────────────────────────────────────
+  // NEW: More Popular US & International Destinations (7)
+  // ────────────────────────────────────────────
+
+  denver: {
+    seasonality: {
+      peak: ["Dec", "Jan", "Feb", "Mar", "Jul"],
+      shoulder: ["Apr", "May", "Jun", "Sep", "Oct"],
+      offPeak: ["Aug", "Nov"],
+      savingsPercent: 25,
+    },
+    flights: [
+      { id: "dv-fl-1", airline: "Southwest", departureTime: "7:00 AM", arrivalTime: "8:45 AM", duration: "2h 45m", price: 110, stops: 0, departureAirport: "ORD", arrivalAirport: "DEN", bookingLink: flightLink("ORD", "DEN", DEP, RET) },
+      { id: "dv-fl-2", airline: "Frontier", departureTime: "9:30 AM", arrivalTime: "11:15 AM", duration: "2h 45m", price: 80, stops: 0, departureAirport: "ORD", arrivalAirport: "DEN", bookingLink: flightLink("ORD", "DEN", DEP, RET) },
+      { id: "dv-fl-3", airline: "United", departureTime: "12:00 PM", arrivalTime: "1:45 PM", duration: "2h 45m", price: 155, stops: 0, departureAirport: "ORD", arrivalAirport: "DEN", bookingLink: flightLink("ORD", "DEN", DEP, RET) },
+      { id: "dv-fl-4", airline: "Southwest", departureTime: "4:00 PM", arrivalTime: "5:45 PM", duration: "2h 45m", price: 180, stops: 0, departureAirport: "ORD", arrivalAirport: "DEN", bookingLink: flightLink("ORD", "DEN", DEP, RET) },
+    ],
+    hotels: [
+      { id: "dv-ht-1", name: "Hostel Fish", rating: 4.4, pricePerNight: 45, amenities: ["WiFi", "Rooftop Bar", "LoDo"], image: "🛌", tier: "budget", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+      { id: "dv-ht-2", name: "Motel 6 Denver Central", rating: 3.7, pricePerNight: 58, amenities: ["WiFi", "Pool", "Free Parking"], image: "🏨", tier: "budget", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+      { id: "dv-ht-3", name: "La Quinta Inn Denver Airport", rating: 4.0, pricePerNight: 95, amenities: ["WiFi", "Free Breakfast", "Airport Shuttle"], image: "🏨", tier: "mid", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+      { id: "dv-ht-4", name: "Best Western Plus Denver", rating: 4.1, pricePerNight: 115, amenities: ["WiFi", "Free Breakfast", "Gym", "Mountain Views"], image: "🏨", tier: "mid", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+      { id: "dv-ht-5", name: "Hyatt Place Denver Downtown", rating: 4.4, pricePerNight: 165, amenities: ["WiFi", "Pool", "Free Breakfast", "Convention Center"], image: "🏢", tier: "premium", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+      { id: "dv-ht-6", name: "Hilton Garden Inn Denver Union Station", rating: 4.5, pricePerNight: 185, amenities: ["WiFi", "Restaurant", "Gym", "Union Station"], image: "🏢", tier: "premium", bookingLink: hotelLink("Denver", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "dv-ac-1", name: "Red Rocks Park & Amphitheatre", description: "Iconic open-air venue with stunning rock formations and hiking trails — free entry", price: 0, category: "free" },
+      { id: "dv-ac-2", name: "LoDo & Union Station", description: "Historic Lower Downtown with craft breweries, restaurants, and renovated train station", price: 0, category: "free" },
+      { id: "dv-ac-3", name: "Denver Art Museum", description: "World-class museum with a striking angular building and free general admission for youth", price: 18, category: "paid" },
+      { id: "dv-ac-4", name: "Rocky Mountain Arsenal Wildlife Refuge", description: "Free wildlife drive with bison, deer, eagles, and prairie dogs", price: 0, category: "free" },
+      { id: "dv-ac-5", name: "16th Street Mall", description: "Mile-long pedestrian promenade with free shuttle buses through downtown", price: 0, category: "free" },
+    ],
+    events: [
+      { name: "Rocky Mountain Day Hike", category: "Tour", pricePerPerson: 55, description: "Guided day hike in the Front Range with mountain views and wildflowers", bookingLink: "https://www.viator.com/search/Denver+Rocky+Mountain+Day+Hike?pid=P00123456", emoji: "🏔️" },
+      { name: "Craft Brewery Tour", category: "Tour", pricePerPerson: 45, description: "Visit 3-4 of Denver's best craft breweries with tastings and a local guide", bookingLink: "https://www.viator.com/search/Denver+Craft+Brewery+Tour?pid=P00123456", emoji: "🍺" },
+      { name: "Red Rocks Concert Experience", category: "Show", pricePerPerson: 65, description: "Evening concert under the stars at the world's most beautiful amphitheater", bookingLink: "https://www.viator.com/search/Denver+Red+Rocks+Concert?pid=P00123456", emoji: "🎵" },
+    ],
+  },
+
+  seattle: {
+    seasonality: {
+      peak: ["Jun", "Jul", "Aug"],
+      shoulder: ["Apr", "May", "Sep", "Oct"],
+      offPeak: ["Jan", "Feb", "Mar", "Nov", "Dec"],
+      savingsPercent: 30,
+    },
+    flights: [
+      { id: "se-fl-1", airline: "Alaska", departureTime: "7:00 AM", arrivalTime: "9:30 AM", duration: "2h 30m", price: 155, stops: 0, departureAirport: "LAX", arrivalAirport: "SEA", bookingLink: flightLink("LAX", "SEA", DEP, RET) },
+      { id: "se-fl-2", airline: "Delta", departureTime: "10:30 AM", arrivalTime: "1:00 PM", duration: "2h 30m", price: 185, stops: 0, departureAirport: "LAX", arrivalAirport: "SEA", bookingLink: flightLink("LAX", "SEA", DEP, RET) },
+      { id: "se-fl-3", airline: "Southwest", departureTime: "1:00 PM", arrivalTime: "3:30 PM", duration: "2h 30m", price: 120, stops: 0, departureAirport: "LAX", arrivalAirport: "SEA", bookingLink: flightLink("LAX", "SEA", DEP, RET) },
+      { id: "se-fl-4", airline: "Alaska", departureTime: "5:00 PM", arrivalTime: "7:30 PM", duration: "2h 30m", price: 250, stops: 0, departureAirport: "LAX", arrivalAirport: "SEA", bookingLink: flightLink("LAX", "SEA", DEP, RET) },
+    ],
+    hotels: [
+      { id: "se-ht-1", name: "HI Seattle at the American Hotel", rating: 4.3, pricePerNight: 42, amenities: ["WiFi", "Free Breakfast", "Pioneer Square"], image: "🛌", tier: "budget", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+      { id: "se-ht-2", name: "Green Tortoise Hostel", rating: 4.2, pricePerNight: 48, amenities: ["WiFi", "Free Breakfast", "Pike Place Market"], image: "🛌", tier: "budget", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+      { id: "se-ht-3", name: "La Quinta Inn Seattle Downtown", rating: 4.0, pricePerNight: 110, amenities: ["WiFi", "Free Breakfast", "Space Needle"], image: "🏨", tier: "mid", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+      { id: "se-ht-4", name: "Best Western Plus Pioneer Square", rating: 4.1, pricePerNight: 125, amenities: ["WiFi", "Free Breakfast", "Gym", "Stadium District"], image: "🏨", tier: "mid", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+      { id: "se-ht-5", name: "Hyatt Place Seattle Downtown", rating: 4.4, pricePerNight: 175, amenities: ["WiFi", "Pool", "Free Breakfast", "Space Needle Views"], image: "🏢", tier: "premium", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+      { id: "se-ht-6", name: "Hilton Garden Inn Seattle Downtown", rating: 4.3, pricePerNight: 195, amenities: ["WiFi", "Restaurant", "Gym", "Waterfront"], image: "🏢", tier: "premium", bookingLink: hotelLink("Seattle", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "se-ac-1", name: "Pike Place Market", description: "Iconic public market with flying fish, artisan crafts, and the original Starbucks", price: 0, category: "free" },
+      { id: "se-ac-2", name: "Olympic Sculpture Park", description: "Free outdoor sculpture museum with Puget Sound and mountain views", price: 0, category: "free" },
+      { id: "se-ac-3", name: "Discovery Park", description: "534-acre park with beaches, forest trails, and lighthouse views", price: 0, category: "free" },
+      { id: "se-ac-4", name: "Space Needle", description: "Seattle's iconic 605-foot observation tower with rotating glass floor", price: 35, category: "paid" },
+      { id: "se-ac-5", name: "Chihuly Garden and Glass", description: "Stunning blown-glass art exhibit next to the Space Needle", price: 32, category: "paid" },
+    ],
+    events: [
+      { name: "Pike Place Market Food Tour", category: "Tour", pricePerPerson: 55, description: "Taste your way through the market with samples from 10+ vendors", bookingLink: "https://www.viator.com/search/Seattle+Pike+Place+Food+Tour?pid=P00123456", emoji: "🍽️" },
+      { name: "Harbor Cruise & Whale Watching", category: "Tour", pricePerPerson: 75, description: "Half-day boat tour to spot orcas, humpbacks, and seals in Puget Sound", bookingLink: "https://www.viator.com/search/Seattle+Whale+Watching?pid=P00123456", emoji: "🐋" },
+      { name: "Mt. Rainier Day Trip", category: "Tour", pricePerPerson: 85, description: "Full-day guided tour to Mt. Rainier National Park with waterfall hikes", bookingLink: "https://www.viator.com/search/Seattle+Mt+Rainier+Day+Trip?pid=P00123456", emoji: "🏔️" },
+    ],
+  },
+
+  boston: {
+    seasonality: {
+      peak: ["Jun", "Jul", "Aug", "Sep", "Oct"],
+      shoulder: ["Apr", "May", "Nov"],
+      offPeak: ["Jan", "Feb", "Mar", "Dec"],
+      savingsPercent: 35,
+    },
+    flights: [
+      { id: "bs-fl-1", airline: "JetBlue", departureTime: "7:00 AM", arrivalTime: "8:15 AM", duration: "1h 15m", price: 120, stops: 0, departureAirport: "JFK", arrivalAirport: "BOS", bookingLink: flightLink("JFK", "BOS", DEP, RET) },
+      { id: "bs-fl-2", airline: "Delta", departureTime: "10:00 AM", arrivalTime: "1:30 PM", duration: "3h 30m", price: 155, stops: 0, departureAirport: "ATL", arrivalAirport: "BOS", bookingLink: flightLink("ATL", "BOS", DEP, RET) },
+      { id: "bs-fl-3", airline: "American", departureTime: "12:00 PM", arrivalTime: "1:15 PM", duration: "1h 15m", price: 140, stops: 0, departureAirport: "JFK", arrivalAirport: "BOS", bookingLink: flightLink("JFK", "BOS", DEP, RET) },
+      { id: "bs-fl-4", airline: "JetBlue", departureTime: "4:00 PM", arrivalTime: "7:30 PM", duration: "3h 30m", price: 100, stops: 0, departureAirport: "ATL", arrivalAirport: "BOS", bookingLink: flightLink("ATL", "BOS", DEP, RET) },
+    ],
+    hotels: [
+      { id: "bs-ht-1", name: "HI Boston Hostel", rating: 4.3, pricePerNight: 48, amenities: ["WiFi", "Free Breakfast", "Theatre District"], image: "🛌", tier: "budget", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+      { id: "bs-ht-2", name: "Revolution Hotel", rating: 4.1, pricePerNight: 75, amenities: ["WiFi", "Free Breakfast", "South End"], image: "🏨", tier: "budget", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+      { id: "bs-ht-3", name: "Holiday Inn Express Boston", rating: 4.0, pricePerNight: 125, amenities: ["WiFi", "Free Breakfast", "Pool"], image: "🏨", tier: "mid", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+      { id: "bs-ht-4", name: "Best Western Plus Boston", rating: 4.1, pricePerNight: 140, amenities: ["WiFi", "Free Breakfast", "Gym", "Subway Access"], image: "🏨", tier: "mid", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+      { id: "bs-ht-5", name: "Hyatt Place Boston/Seaport", rating: 4.5, pricePerNight: 195, amenities: ["WiFi", "Pool", "Free Breakfast", "Seaport District"], image: "🏢", tier: "premium", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+      { id: "bs-ht-6", name: "Hilton Garden Inn Boston Logan", rating: 4.3, pricePerNight: 210, amenities: ["WiFi", "Restaurant", "Gym", "Airport Shuttle"], image: "🏢", tier: "premium", bookingLink: hotelLink("Boston", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "bs-ac-1", name: "Freedom Trail", description: "2.5-mile self-guided walk through 16 Revolutionary War sites", price: 0, category: "free" },
+      { id: "bs-ac-2", name: "Boston Common & Public Garden", description: "America's oldest public park with swan boats and Frog Pond", price: 0, category: "free" },
+      { id: "bs-ac-3", name: "Harvard Square", description: "Explore the historic Harvard campus, bookstores, and street performers", price: 0, category: "free" },
+      { id: "bs-ac-4", name: "Museum of Fine Arts", description: "One of the world's most comprehensive art museums", price: 27, category: "paid" },
+      { id: "bs-ac-5", name: "New England Aquarium", description: "Giant ocean tank with sharks, sea turtles, and penguins", price: 32, category: "paid" },
+    ],
+    events: [
+      { name: "Fenway Park Tour & Game", category: "Attraction", pricePerPerson: 45, description: "Tour America's most beloved ballpark and catch a Red Sox game", bookingLink: "https://www.viator.com/search/Boston+Fenway+Park+Tour?pid=P00123456", emoji: "⚾" },
+      { name: "Whale Watch Cruise", category: "Tour", pricePerPerson: 55, description: "3-hour catamaran cruise to Stellwagen Bank Marine Sanctuary", bookingLink: "https://www.viator.com/search/Boston+Whale+Watch?pid=P00123456", emoji: "🐋" },
+      { name: "Freedom Trail Walking Tour", category: "Tour", pricePerPerson: 25, description: "Guided tour with a costumed historian through the American Revolution", bookingLink: "https://www.viator.com/search/Boston+Freedom+Trail+Tour?pid=P00123456", emoji: "🔔" },
+    ],
+  },
+
+  "washington dc": {
+    seasonality: {
+      peak: ["Mar", "Apr", "May", "Jun"],
+      shoulder: ["Jul", "Aug", "Sep", "Oct"],
+      offPeak: ["Jan", "Feb", "Nov", "Dec"],
+      savingsPercent: 30,
+    },
+    flights: [
+      { id: "dc-fl-1", airline: "Delta", departureTime: "7:00 AM", arrivalTime: "8:45 AM", duration: "1h 45m", price: 110, stops: 0, departureAirport: "ATL", arrivalAirport: "DCA", bookingLink: flightLink("ATL", "WAS", DEP, RET) },
+      { id: "dc-fl-2", airline: "American", departureTime: "10:00 AM", arrivalTime: "11:45 AM", duration: "1h 45m", price: 145, stops: 0, departureAirport: "ATL", arrivalAirport: "DCA", bookingLink: flightLink("ATL", "WAS", DEP, RET) },
+      { id: "dc-fl-3", airline: "Southwest", departureTime: "1:00 PM", arrivalTime: "2:45 PM", duration: "1h 45m", price: 90, stops: 0, departureAirport: "ATL", arrivalAirport: "DCA", bookingLink: flightLink("ATL", "WAS", DEP, RET) },
+      { id: "dc-fl-4", airline: "Delta", departureTime: "5:00 PM", arrivalTime: "6:45 PM", duration: "1h 45m", price: 200, stops: 0, departureAirport: "ATL", arrivalAirport: "DCA", bookingLink: flightLink("ATL", "WAS", DEP, RET) },
+    ],
+    hotels: [
+      { id: "dc-ht-1", name: "HI Washington DC Hostel", rating: 4.2, pricePerNight: 40, amenities: ["WiFi", "Free Breakfast", "Downtown"], image: "🛌", tier: "budget", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+      { id: "dc-ht-2", name: "Motel 6 Washington DC", rating: 3.6, pricePerNight: 60, amenities: ["WiFi", "Free Parking", "Pet Friendly"], image: "🏨", tier: "budget", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+      { id: "dc-ht-3", name: "Holiday Inn Capitol", rating: 4.1, pricePerNight: 120, amenities: ["WiFi", "Pool", "Capitol Views"], image: "🏨", tier: "mid", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+      { id: "dc-ht-4", name: "Best Western Plus DC Convention Center", rating: 4.0, pricePerNight: 135, amenities: ["WiFi", "Free Breakfast", "Gym", "Metro Access"], image: "🏨", tier: "mid", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+      { id: "dc-ht-5", name: "Hyatt Place DC/National Mall", rating: 4.4, pricePerNight: 175, amenities: ["WiFi", "Pool", "Free Breakfast", "Mall Views"], image: "🏢", tier: "premium", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+      { id: "dc-ht-6", name: "Hilton Garden Inn DC Downtown", rating: 4.3, pricePerNight: 195, amenities: ["WiFi", "Restaurant", "Gym", "White House Nearby"], image: "🏢", tier: "premium", bookingLink: hotelLink("Washington DC", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "dc-ac-1", name: "National Mall Monuments", description: "Self-guided walk past Lincoln Memorial, Washington Monument, and reflecting pool", price: 0, category: "free" },
+      { id: "dc-ac-2", name: "Smithsonian Museums", description: "11 free museums including Air & Space, Natural History, and American History", price: 0, category: "free" },
+      { id: "dc-ac-3", name: "U.S. Capitol Tour", description: "Free guided tour of the Capitol building - advance reservation recommended", price: 0, category: "free" },
+      { id: "dc-ac-4", name: "Arlington National Cemetery", description: "Hallowed grounds with Changing of the Guard at the Tomb of the Unknown Soldier", price: 0, category: "free" },
+      { id: "dc-ac-5", name: "Georgetown Waterfront", description: "Charming historic neighborhood with canal walks, shops, and waterfront dining", price: 0, category: "free" },
+    ],
+    events: [
+      { name: "Monuments by Moonlight Tour", category: "Tour", pricePerPerson: 40, description: "Evening trolley tour of DC's illuminated memorials and monuments", bookingLink: "https://www.viator.com/search/Washington+DC+Monuments+by+Moonlight?pid=P00123456", emoji: "🌙" },
+      { name: "White House Visitor Center", category: "Attraction", pricePerPerson: 0, description: "Free interactive exhibits about the People's House (advance tickets needed for interior)", bookingLink: "https://www.viator.com/search/Washington+DC+White+House+Tour?pid=P00123456", emoji: "🏛️" },
+      { name: "DC Food & History Tour", category: "Tour", pricePerPerson: 55, description: "Sample DC's best eats while learning capital history in Capitol Hill", bookingLink: "https://www.viator.com/search/Washington+DC+Food+History+Tour?pid=P00123456", emoji: "🍴" },
+    ],
+  },
+
+  "san juan": {
+    seasonality: {
+      peak: ["Dec", "Jan", "Feb", "Mar"],
+      shoulder: ["Apr", "May", "Jun", "Nov"],
+      offPeak: ["Jul", "Aug", "Sep", "Oct"],
+      savingsPercent: 35,
+    },
+    flights: [
+      { id: "sj-fl-1", airline: "JetBlue", departureTime: "7:00 AM", arrivalTime: "10:30 AM", duration: "3h 30m", price: 180, stops: 0, departureAirport: "MIA", arrivalAirport: "SJU", bookingLink: flightLink("MIA", "SJU", DEP, RET) },
+      { id: "sj-fl-2", airline: "Spirit", departureTime: "10:00 AM", arrivalTime: "1:30 PM", duration: "3h 30m", price: 150, stops: 0, departureAirport: "MIA", arrivalAirport: "SJU", bookingLink: flightLink("MIA", "SJU", DEP, RET) },
+      { id: "sj-fl-3", airline: "Southwest", departureTime: "1:00 PM", arrivalTime: "4:30 PM", duration: "3h 30m", price: 210, stops: 0, departureAirport: "MIA", arrivalAirport: "SJU", bookingLink: flightLink("MIA", "SJU", DEP, RET) },
+      { id: "sj-fl-4", airline: "American", departureTime: "5:00 PM", arrivalTime: "8:30 PM", duration: "3h 30m", price: 300, stops: 0, departureAirport: "MIA", arrivalAirport: "SJU", bookingLink: flightLink("MIA", "SJU", DEP, RET) },
+    ],
+    hotels: [
+      { id: "sj-ht-1", name: "Posada San Francisco", rating: 4.3, pricePerNight: 37, amenities: ["WiFi", "Rooftop Terrace", "Old San Juan"], image: "🛌", tier: "budget", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+      { id: "sj-ht-2", name: "Casa Caribe Hostel", rating: 4.0, pricePerNight: 28, amenities: ["WiFi", "Community Kitchen", "Beach Nearby"], image: "🛌", tier: "budget", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+      { id: "sj-ht-3", name: "Hotel Milano", rating: 4.1, pricePerNight: 85, amenities: ["WiFi", "Rooftop Restaurant", "Old San Juan"], image: "🏨", tier: "mid", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+      { id: "sj-ht-4", name: "Holiday Inn Express San Juan", rating: 4.2, pricePerNight: 115, amenities: ["WiFi", "Free Breakfast", "Pool", "Condado Beach"], image: "🏨", tier: "mid", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+      { id: "sj-ht-5", name: "Hyatt Place San Juan City Center", rating: 4.4, pricePerNight: 160, amenities: ["WiFi", "Pool", "Free Breakfast", "Convention Center"], image: "🏢", tier: "premium", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+      { id: "sj-ht-6", name: "Hilton Garden Inn San Juan Condado", rating: 4.3, pricePerNight: 185, amenities: ["WiFi", "Pool", "Restaurant", "Ocean Views"], image: "🏢", tier: "premium", bookingLink: hotelLink("San Juan", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "sj-ac-1", name: "Old San Juan Walking Tour", description: "Self-guided stroll through 500-year-old cobblestone streets with colorful colonial buildings", price: 0, category: "free" },
+      { id: "sj-ac-2", name: "El Morro Fortress", description: "16th-century Spanish fort with sweeping ocean views ($10 entry, free for kids)", price: 10, category: "paid" },
+      { id: "sj-ac-3", name: "Condado Beach", description: "Popular urban beach with calm waters, palm trees, and nearby restaurants", price: 0, category: "free" },
+      { id: "sj-ac-4", name: "La Placita de Santurce", description: "Vibrant market square by day, open-air dance party by night", price: 0, category: "free" },
+      { id: "sj-ac-5", name: "Paseo de la Princesa", description: "Scenic waterfront promenade with views of San Juan Bay and artisan stalls", price: 0, category: "free" },
+    ],
+    events: [
+      { name: "El Yunque Rainforest Tour", category: "Tour", pricePerPerson: 65, description: "Half-day guided hike through the only tropical rainforest in the US National Forest system", bookingLink: "https://www.viator.com/search/San+Juan+El+Yunque+Rainforest+Tour?pid=P00123456", emoji: "🌿" },
+      { name: "Bio Bay Kayak Tour", category: "Tour", pricePerPerson: 55, description: "Nighttime kayak through bioluminescent waters that glow with every paddle stroke", bookingLink: "https://www.viator.com/search/San+Juan+Bio+Bay+Kayak?pid=P00123456", emoji: "✨" },
+      { name: "Old San Juan Food Tour", category: "Tour", pricePerPerson: 60, description: "Taste mofongo, lechon, and pina coladas where they were invented", bookingLink: "https://www.viator.com/search/San+Juan+Food+Tour?pid=P00123456", emoji: "🥘" },
+    ],
+  },
+
+  dublin: {
+    seasonality: {
+      peak: ["Jun", "Jul", "Aug"],
+      shoulder: ["Apr", "May", "Sep", "Oct"],
+      offPeak: ["Jan", "Feb", "Mar", "Nov", "Dec"],
+      savingsPercent: 35,
+    },
+    flights: [
+      { id: "db-fl-1", airline: "Aer Lingus", departureTime: "6:00 PM", arrivalTime: "6:15 AM", duration: "7h 15m", price: 385, stops: 0, departureAirport: "JFK", arrivalAirport: "DUB", bookingLink: flightLink("JFK", "DUB", DEP, RET) },
+      { id: "db-fl-2", airline: "Delta", departureTime: "8:00 PM", arrivalTime: "8:15 AM", duration: "7h 15m", price: 430, stops: 0, departureAirport: "JFK", arrivalAirport: "DUB", bookingLink: flightLink("JFK", "DUB", DEP, RET) },
+      { id: "db-fl-3", airline: "Aer Lingus", departureTime: "10:00 PM", arrivalTime: "10:15 AM", duration: "7h 15m", price: 350, stops: 0, departureAirport: "JFK", arrivalAirport: "DUB", bookingLink: flightLink("JFK", "DUB", DEP, RET) },
+      { id: "db-fl-4", airline: "Delta", departureTime: "7:00 PM", arrivalTime: "7:15 AM", duration: "7h 15m", price: 550, stops: 0, departureAirport: "JFK", arrivalAirport: "DUB", bookingLink: flightLink("JFK", "DUB", DEP, RET) },
+    ],
+    hotels: [
+      { id: "db-ht-1", name: "Isaacs Hostel", rating: 4.2, pricePerNight: 28, amenities: ["WiFi", "Live Music Venue", "City Centre"], image: "🛌", tier: "budget", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+      { id: "db-ht-2", name: "Generator Dublin", rating: 4.1, pricePerNight: 35, amenities: ["WiFi", "Bar", "Smithfield"], image: "🛌", tier: "budget", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+      { id: "db-ht-3", name: "Maldron Hotel Parnell Square", rating: 4.1, pricePerNight: 90, amenities: ["WiFi", "Restaurant", "City Centre"], image: "🏨", tier: "mid", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+      { id: "db-ht-4", name: "Clayton Hotel Cardiff Lane", rating: 4.3, pricePerNight: 110, amenities: ["WiFi", "Pool", "Gym", "Bord Gais Theatre"], image: "🏨", tier: "mid", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+      { id: "db-ht-5", name: "Hyatt Centric The Liberties", rating: 4.5, pricePerNight: 175, amenities: ["WiFi", "Restaurant", "Gym", "Guinness Storehouse Nearby"], image: "🏢", tier: "premium", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+      { id: "db-ht-6", name: "Hilton Garden Inn Dublin Custom House", rating: 4.3, pricePerNight: 195, amenities: ["WiFi", "Restaurant", "Gym", "River Liffey Views"], image: "🏢", tier: "premium", bookingLink: hotelLink("Dublin", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "db-ac-1", name: "Trinity College & Book of Kells", description: "Ireland's oldest university with the breathtaking Long Room library", price: 16, category: "paid" },
+      { id: "db-ac-2", name: "St. Stephen's Green", description: "Victorian park in the heart of Dublin with lake, waterfall, and bandstand", price: 0, category: "free" },
+      { id: "db-ac-3", name: "Temple Bar District", description: "Iconic cultural quarter with cobblestone streets, pubs, and galleries", price: 0, category: "free" },
+      { id: "db-ac-4", name: "Dublin Castle", description: "800-year-old castle with state apartments and Chester Beatty Library (free)", price: 0, category: "free" },
+      { id: "db-ac-5", name: "Phoenix Park", description: "One of Europe's largest walled city parks, home to wild deer and Aras an Uachtarain", price: 0, category: "free" },
+    ],
+    events: [
+      { name: "Guinness Storehouse Tour", category: "Attraction", pricePerPerson: 25, description: "Tour the home of Guinness with a pint in the Gravity Bar overlooking Dublin", bookingLink: "https://www.viator.com/search/Dublin+Guinness+Storehouse+Tour?pid=P00123456", emoji: "🍺" },
+      { name: "Cliffs of Moher Day Trip", category: "Tour", pricePerPerson: 50, description: "Full-day coach tour to Ireland's most dramatic sea cliffs and Galway Bay", bookingLink: "https://www.viator.com/search/Dublin+Cliffs+of+Moher+Day+Trip?pid=P00123456", emoji: "🌊" },
+      { name: "Traditional Irish Music Pub Crawl", category: "Show", pricePerPerson: 15, description: "Led by musicians - discover Dublin's best trad music in historic pubs", bookingLink: "https://www.viator.com/search/Dublin+Pub+Crawl+Music?pid=P00123456", emoji: "🎻" },
+    ],
+  },
+
+  amsterdam: {
+    seasonality: {
+      peak: ["Apr", "May", "Jun", "Jul", "Aug"],
+      shoulder: ["Mar", "Sep", "Oct"],
+      offPeak: ["Jan", "Feb", "Nov", "Dec"],
+      savingsPercent: 35,
+    },
+    flights: [
+      { id: "am-fl-1", airline: "KLM", departureTime: "5:00 PM", arrivalTime: "7:00 AM", duration: "8h 00m", price: 440, stops: 0, departureAirport: "JFK", arrivalAirport: "AMS", bookingLink: flightLink("JFK", "AMS", DEP, RET) },
+      { id: "am-fl-2", airline: "Delta", departureTime: "7:00 PM", arrivalTime: "9:00 AM", duration: "8h 00m", price: 480, stops: 0, departureAirport: "JFK", arrivalAirport: "AMS", bookingLink: flightLink("JFK", "AMS", DEP, RET) },
+      { id: "am-fl-3", airline: "KLM", departureTime: "9:30 PM", arrivalTime: "11:30 AM", duration: "8h 00m", price: 400, stops: 0, departureAirport: "JFK", arrivalAirport: "AMS", bookingLink: flightLink("JFK", "AMS", DEP, RET) },
+      { id: "am-fl-4", airline: "Delta", departureTime: "6:00 PM", arrivalTime: "8:00 AM", duration: "8h 00m", price: 600, stops: 0, departureAirport: "JFK", arrivalAirport: "AMS", bookingLink: flightLink("JFK", "AMS", DEP, RET) },
+    ],
+    hotels: [
+      { id: "am-ht-1", name: "ClinkNOORD Hostel", rating: 4.2, pricePerNight: 25, amenities: ["WiFi", "Bar", "Free Ferry to Central"], image: "🛌", tier: "budget", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+      { id: "am-ht-2", name: "Stayokay Amsterdam Vondelpark", rating: 4.1, pricePerNight: 35, amenities: ["WiFi", "Free Breakfast", "Vondelpark"], image: "🛌", tier: "budget", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+      { id: "am-ht-3", name: "Ibis Amsterdam Centre", rating: 4.1, pricePerNight: 95, amenities: ["WiFi", "Bar", "Central Station"], image: "🏨", tier: "mid", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+      { id: "am-ht-4", name: "Hotel Not Hotel", rating: 4.3, pricePerNight: 85, amenities: ["WiFi", "Themed Rooms", "Trendy Neighborhood"], image: "🏨", tier: "mid", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+      { id: "am-ht-5", name: "Hyatt Place Amsterdam Airport", rating: 4.4, pricePerNight: 140, amenities: ["WiFi", "Free Breakfast", "Airport Shuttle", "Gym"], image: "🏢", tier: "premium", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+      { id: "am-ht-6", name: "Hilton Garden Inn Amsterdam City", rating: 4.3, pricePerNight: 170, amenities: ["WiFi", "Restaurant", "Gym", "Canal District"], image: "🏢", tier: "premium", bookingLink: hotelLink("Amsterdam", CHECK_IN, CHECK_OUT) },
+    ],
+    activities: [
+      { id: "am-ac-1", name: "Vondelpark", description: "Amsterdam's largest park with free concerts, ponds, and endless bike paths", price: 0, category: "free" },
+      { id: "am-ac-2", name: "Canal Belt Walking Tour", description: "Self-guided walk along Amsterdam's UNESCO-listed 17th-century canals", price: 0, category: "free" },
+      { id: "am-ac-3", name: "Rijksmuseum Gardens", description: "Free sculpture garden and outdoor exhibitions surrounding the Rijksmuseum", price: 0, category: "free" },
+      { id: "am-ac-4", name: "Anne Frank House", description: "Moving museum in the secret annex where Anne Frank wrote her diary", price: 16, category: "paid" },
+      { id: "am-ac-5", name: "Van Gogh Museum", description: "The world's largest collection of Van Gogh's paintings and letters", price: 20, category: "paid" },
+    ],
+    events: [
+      { name: "Canal Cruise", category: "Tour", pricePerPerson: 18, description: "Classic hour-long boat tour through Amsterdam's iconic canal ring", bookingLink: "https://www.viator.com/search/Amsterdam+Canal+Cruise?pid=P00123456", emoji: "🛶" },
+      { name: "Zaanse Schans Windmills Day Trip", category: "Tour", pricePerPerson: 35, description: "Half-day trip to see working windmills, wooden shoe workshop, and cheese farm", bookingLink: "https://www.viator.com/search/Amsterdam+Zaanse+Schans?pid=P00123456", emoji: "🌷" },
+      { name: "Heineken Experience", category: "Attraction", pricePerPerson: 22, description: "Interactive tour through the original Heineken brewery with tastings", bookingLink: "https://www.viator.com/search/Amsterdam+Heineken+Experience?pid=P00123456", emoji: "🍺" },
+    ],
+  },
+
 };
 
 /** Known destinations for autocomplete suggestions */

@@ -40,6 +40,9 @@ export const CITY_IATA: Record<string, string> = {
   rome: "FCO",
   tokyo: "NRT",
   bangkok: "BKK",
+  "san juan": "SJU",
+  dublin: "DUB",
+  amsterdam: "AMS",
 };
 
 /** All known city names for autocomplete suggestions */
