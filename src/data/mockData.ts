@@ -7,7 +7,7 @@ import type { DestinationData } from "~/types";
  *
  * Affiliate links:
  * - Flights: Kayak search with affiliate tracking (ai= param)
- * - Hotels: Booking.com search with affiliate AID (aid= param)
+ * - Hotels: Stay22 affiliate links (aggregates Booking.com + Expedia + Hotels.com)
  * Dates: August 3–8, 2026
  *
  * Hotel tiers:
@@ -16,18 +16,18 @@ import type { DestinationData } from "~/types";
  * - premium: 4-star but still affordable (Hyatt Place, Hilton Garden Inn, etc.)
  *
  * --- Affiliate ID configuration ---
- * Set VITE_BOOKING_AID and VITE_KAYAK_AFFILIATE in your .env file.
+ * Set VITE_STAY22_AID and VITE_KAYAK_AFFILIATE in your .env file.
  * When unset links use demo IDs that still work (no commission tracking).
  */
 
-/** Read Booking.com AID from env, or fall back to a demo/test value */
-function bookingAid(): string {
-  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_BOOKING_AID) {
-    return import.meta.env.VITE_BOOKING_AID as string;
+/** Read Stay22 AID from env, or fall back to a demo/test value */
+function stay22Aid(): string {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_STAY22_AID) {
+    return import.meta.env.VITE_STAY22_AID as string;
   }
   // SSR fallback
-  if (typeof process !== "undefined" && process.env?.BOOKING_AID) {
-    return process.env.BOOKING_AID;
+  if (typeof process !== "undefined" && process.env?.STAY22_AID) {
+    return process.env.STAY22_AID;
   }
   return "vacayscout_demo";
 }
@@ -58,10 +58,10 @@ function flightLink(origin: string, dest: string, depDate: string, retDate: stri
   return `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}?ai=${aff}`;
 }
 
-/** Build a Booking.com hotel search URL */
+/** Build a Stay22 hotel search URL */
 function hotelLink(destinationName: string, checkIn: string, checkOut: string): string {
-  const aid = bookingAid();
-  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(destinationName)}&checkin=${checkIn}&checkout=${checkOut}&aid=${aid}&lang=en-us`;
+  const aid = stay22Aid();
+  return `https://www.stay22.com/allez/roam?aid=${aid}&destination=${encodeURIComponent(destinationName)}&checkin=${checkIn}&checkout=${checkOut}`;
 }
 
 // Shared date params
