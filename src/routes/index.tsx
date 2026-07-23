@@ -5,6 +5,7 @@ import { TripDetailsStep } from "~/components/TripDetailsStep";
 import { ResultsStep } from "~/components/ResultsStep";
 import { getDestinationData } from "~/data/mockData";
 import { searchFlights, searchHotels } from "~/data/amadeusApi";
+import { logKpiEvent } from "~/data/kpiStore";
 import type { TripParams, TripResult, Flight, Hotel, Activity } from "~/types";
 
 type Step = "budget" | "details" | "results";
@@ -339,6 +340,7 @@ function Home() {
             driving: p.driving,
           };
           setResult(computedResult);
+          logTripKpi(computedResult, budget);
           setStatusMessage(
             `We couldn't find a trip from ${p.departure} to ${p.arrival} that fits your ${budget.toLocaleString("en-US")} budget.`,
           );
@@ -372,6 +374,7 @@ function Home() {
           }
 
           setResult(tripResult);
+          logTripKpi(tripResult, budget);
 
           if (tripResult.isFeasible) {
             setStatusMessage(
@@ -406,6 +409,25 @@ function Home() {
             flexibleDatesMonth,
             driving: p.driving,
           });
+          logTripKpi(
+            {
+              flights: [],
+              hotel: null,
+              hotels: [],
+              activities: [],
+              totalCost: budget + 500,
+              nights: calcNights(effectiveDepartureDate, effectiveReturnDate),
+              budgetGap: 0,
+              isFeasible: false,
+              departure: p.departure,
+              arrival: p.arrival,
+              offPeak: effectiveOffPeak,
+              flexibleDates: p.flexibleDates,
+              flexibleDatesMonth,
+              driving: p.driving,
+            },
+            budget,
+          );
           setStatusMessage(
             `We couldn't find a trip from ${p.departure} to ${p.arrival} that fits your ${budget.toLocaleString("en-US")} budget.`,
           );
@@ -434,6 +456,7 @@ function Home() {
             tripResult.isFeasible = false;
           }
           setResult(tripResult);
+          logTripKpi(tripResult, budget);
           setStatusMessage(
             tripResult.isFeasible
               ? `Trip found! Total: ${tripResult.totalCost.toLocaleString("en-US")} — ${tripResult.budgetGap.toLocaleString("en-US")} under your budget.`
@@ -446,6 +469,25 @@ function Home() {
       setStep("results");
     },
     [budget],
+  );
+
+  /** Log a trip_planned KPI event (fire-and-forget — don't block the UI) */
+  const logTripKpi = useCallback(
+    (tripResult: TripResult, tripBudget: number) => {
+      logKpiEvent({
+        data: {
+          event_type: "trip_planned",
+          budget: tripBudget,
+          budgetGap: tripResult.isFeasible ? tripResult.budgetGap : undefined,
+          isFeasible: tripResult.isFeasible,
+          peakTotalCost: tripResult.peakTotalCost,
+          totalCost: tripResult.totalCost,
+        },
+      }).catch(() => {
+        // Silently ignore — KPI logging must not break the UX
+      });
+    },
+    [],
   );
 
   const handleStartOver = useCallback(() => {

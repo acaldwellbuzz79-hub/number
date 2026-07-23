@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import type { TripResult, Hotel, HotelTier, Event } from "~/types";
 import { PaymentPlanSection } from "~/components/PaymentPlanSection";
 import { getDestinationData, KNOWN_DESTINATIONS } from "~/data/mockData";
+import { logKpiEvent } from "~/data/kpiStore";
 
 interface ResultsStepProps {
   result: TripResult;
@@ -350,6 +351,22 @@ export function ResultsStep({
     setSelectedHotelId(hotelId);
   }, []);
 
+  /** Track a booking link click then navigate. Fire-and-forget KPI logging. */
+  const handleBookingClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, linkType: string) => {
+      // Don't prevent default — just log and let the link work naturally
+      logKpiEvent({
+        data: {
+          event_type: "booking_click",
+          linkType,
+        },
+      }).catch(() => {
+        // Silently ignore — tracking must not block navigation
+      });
+    },
+    [],
+  );
+
   return (
     <div className="flex flex-1 flex-col px-4 py-6">
       <div className="mx-auto w-full max-w-2xl">
@@ -671,6 +688,7 @@ export function ResultsStep({
                       href={flight.bookingLink}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => handleBookingClick(e, "flight")}
                       className="inline-flex items-center gap-1 text-xs font-medium text-teal-600 transition-colors hover:text-teal-800"
                     >
                       View deal
@@ -813,7 +831,10 @@ export function ResultsStep({
                           href={hotel.bookingLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookingClick(e, "hotel");
+                          }}
                           className="inline-flex items-center gap-1 text-xs font-medium text-teal-600 transition-colors hover:text-teal-800"
                         >
                           View deal
@@ -1037,6 +1058,7 @@ export function ResultsStep({
                               href={event.bookingLink}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={(e) => handleBookingClick(e, "event")}
                               className="inline-flex items-center gap-1 text-xs font-medium text-teal-600 transition-colors hover:text-teal-800"
                             >
                               Book tickets
