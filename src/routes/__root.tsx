@@ -55,11 +55,51 @@ function RootComponent() {
   );
 }
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "VacayScout",
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_URL}/?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "Organization",
+      name: "VacayScout",
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      sameAs: [
+        "https://twitter.com/vacayscout",
+        "https://www.facebook.com/vacayscout",
+        "https://www.instagram.com/vacayscout",
+      ],
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/logo.png`,
+      },
+    },
+  ],
+};
+
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
       </head>
       <body className="min-h-dvh bg-gray-50">
         {children}
